@@ -1,0 +1,194 @@
+/* ================================================================
+   ENHANCE-UI · Capa de dinamismo visual (V5)
+   Solo estética/interacción — no toca styles.css ni la lógica JS.
+   Pensado para cargarse DESPUÉS de styles.css.
+   ================================================================ */
+
+/* ---------- Base: scrollbar, selección, foco ---------- */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+::selection{background:var(--gold);color:#241703}
+
+/* Brillo ambiental que respira muy lento detrás del contenido */
+body::after{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(560px 560px at 12% 15%, rgba(124,108,240,.09), transparent 60%),
+    radial-gradient(620px 620px at 88% 85%, rgba(242,180,65,.07), transparent 60%);
+  animation:ambientDrift 24s ease-in-out infinite;
+}
+@keyframes ambientDrift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-3%,3%) scale(1.05)}}
+
+/* ---------- LA MONEDITA: giro tipo moneda real ---------- */
+.brand .coin{
+  position:relative;
+  overflow:hidden;
+  animation:coinFlip 2.6s cubic-bezier(.45,.05,.55,.95) infinite;
+  box-shadow:0 0 18px rgba(242,180,65,.4),0 4px 14px rgba(0,0,0,.35);
+  transition:box-shadow .3s;
+  will-change:transform;
+}
+.brand .coin::after{
+  content:"";position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.7) 48%,rgba(255,255,255,.15) 54%,transparent 70%);
+  background-size:240% 240%;background-position:130% 130%;
+  animation:coinShine 2.6s ease infinite;mix-blend-mode:overlay;
+}
+@keyframes coinFlip{
+  0%,100%{transform:scaleX(1) rotate(0deg)}
+  20%{transform:scaleX(1) rotate(-5deg)}
+  50%{transform:scaleX(.08) rotate(0deg)}
+  80%{transform:scaleX(1) rotate(5deg)}
+}
+@keyframes coinShine{0%{background-position:130% 130%}50%{background-position:-40% -40%}100%{background-position:130% 130%}}
+.brand:hover .coin{animation-duration:.7s;box-shadow:0 0 30px rgba(242,180,65,.75),0 4px 18px rgba(0,0,0,.4)}
+/* Guiño: los íconos de moneda de la tabla de mercado también "giran" al pasar el mouse por su fila */
+.coinname .ic{transition:box-shadow .25s}
+.mkt tr:hover .coinname .ic{animation:coinFlip 1s ease}
+
+/* ---------- Botones: relieve "presionable" tipo juego + brillo al pasar el mouse ---------- */
+/* Estático por defecto (nada se mueve solo) — solo reacciona al hover/click, para que sea
+   llamativo sin resultar invasivo. */
+.btn{
+  position:relative;overflow:hidden;isolation:isolate;
+  box-shadow:0 2px 0 rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.05) inset,0 8px 18px rgba(0,0,0,.18);
+  transition:transform .12s ease,box-shadow .12s ease,border-color .18s ease,filter .18s ease;
+}
+.btn::before{
+  content:"";position:absolute;top:0;left:-60%;width:35%;height:100%;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.4),transparent);
+  transform:skewX(-20deg);transition:left .5s ease;z-index:1;pointer-events:none;
+}
+.btn:hover::before{left:130%}
+.btn:hover{box-shadow:0 3px 0 rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.05) inset,0 10px 22px rgba(0,0,0,.28)}
+.btn:active{transform:translateY(2px) scale(.98);box-shadow:0 0 0 rgba(0,0,0,0),0 1px 0 rgba(255,255,255,.05) inset}
+
+.btn.gold{
+  background:linear-gradient(160deg,#F8CD75,var(--gold) 55%,#D89A2E);
+  box-shadow:0 3px 0 #8a5b12,0 10px 24px rgba(242,180,65,.28);
+}
+.btn.gold:hover{filter:brightness(1.06);box-shadow:0 3px 0 #8a5b12,0 12px 30px rgba(242,180,65,.42)}
+.btn.gold:active{transform:translateY(2px) scale(.98);box-shadow:0 1px 0 #8a5b12,0 4px 12px rgba(242,180,65,.3)}
+
+.btn.sm{box-shadow:0 2px 0 rgba(0,0,0,.3),0 4px 10px rgba(0,0,0,.16)}
+.btn.sm:active{box-shadow:0 0 0 rgba(0,0,0,0)}
+
+.btn.ghost{box-shadow:none !important;background:transparent}
+.btn.ghost:hover{box-shadow:none !important}
+.btn.ghost:active{box-shadow:none !important}
+
+.btn:disabled{box-shadow:none;transform:none;filter:none}
+
+/* ---------- Tarjetas: más profundidad y una elevación suave al pasar el mouse ---------- */
+/* Solo reacciona al hover: nada se mueve solo, para que sea llamativo sin ser invasivo. */
+.card,.acard,.route-card,.decision-card,.q4-analysis{
+  transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+}
+.card{
+  background:linear-gradient(165deg,var(--panel),rgba(8,13,23,.94));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 10px 24px rgba(0,0,0,.16);
+}
+.card:hover{transform:translateY(-3px);border-color:rgba(242,180,65,.32);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 18px 38px rgba(0,0,0,.36)}
+.acard{box-shadow:0 8px 18px rgba(0,0,0,.14)}
+.acard:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(0,0,0,.32)}
+.mission-card .mc-icon{display:inline-block;transition:transform .3s ease}
+.mission-card:hover .mc-icon{transform:scale(1.18) rotate(-6deg)}
+
+/* ---------- Alineación pareja: que ninguna tarjeta quede "más arriba" que otra ---------- */
+/* Todas las tarjetas de una misma cuadrícula ahora ocupan la misma altura de fila y
+   estiran su contenido de forma consistente, sin importar cuánto texto tenga cada una. */
+.grid2,.grid3,.acad,.mission-grid,.decision-list,.route-grid,.strategy-choices,
+.member-grid,.badges,.roles,.q4-choice-grid{
+  align-items:stretch;
+}
+.acard,.decision-card,.route-card,.role,.strategy-choice,.badge{
+  display:flex;flex-direction:column;height:100%;
+}
+.newsitem,.q4-news-option{height:100%}
+.acard .okbtn{margin-top:auto}
+.role{justify-content:center}
+.badge{justify-content:center;align-items:center}
+.strategy-choice{justify-content:flex-start}
+
+/* ---------- Barras de progreso con "brillo" tipo XP bar ---------- */
+.progressline div,.hub-progress div,.kiosk-progress i{position:relative;overflow:hidden}
+.progressline div::after,.hub-progress div::after,.kiosk-progress i::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+  animation:shimmer 1.8s linear infinite;
+}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+/* ---------- Riel de misiones: la activa "respira", la recién completada rebota ---------- */
+.rail button.active{animation:railPulse 2.4s ease infinite}
+@keyframes railPulse{0%,100%{box-shadow:0 0 0 1px var(--gold) inset}50%{box-shadow:0 0 0 1px var(--gold) inset,0 0 14px rgba(242,180,65,.4)}}
+.rail button.done .n{animation:doneBounce .45s ease}
+@keyframes doneBounce{0%{transform:scale(.55)}65%{transform:scale(1.25)}100%{transform:scale(1)}}
+
+/* ---------- Celebración al completar tareas / conceptos / misiones ---------- */
+.task.ok,.acard.learned,.mission-card.done,.badge.won{animation:completePulse .6s ease}
+@keyframes completePulse{
+  0%{box-shadow:0 0 0 0 rgba(43,217,143,.55)}
+  70%{box-shadow:0 0 0 16px rgba(43,217,143,0)}
+  100%{box-shadow:0 0 0 0 rgba(43,217,143,0)}
+}
+.badge.won{animation:badgePop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes badgePop{0%{transform:scale(.7);opacity:.5}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+
+/* ---------- Opciones / roles / chips: más táctiles ---------- */
+.opt,.role,.strategy-choice,.q4-news-option,.newsitem,.wizard-step{transition:.18s,transform .18s ease}
+.opt:hover,.role:hover,.strategy-choice:hover,.newsitem:hover{transform:translateY(-2px)}
+.opt.sel,.role.sel,.strategy-choice.sel,.newsitem.sel{animation:selectPop .22s ease}
+@keyframes selectPop{0%{transform:scale(.93)}100%{transform:scale(1)}}
+
+/* ---------- Toast y modal: entradas con rebote ---------- */
+.toast.show{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.modal{animation:modalIn .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes modalIn{0%{transform:scale(.93) translateY(10px);opacity:0}100%{transform:scale(1) translateY(0);opacity:1}}
+
+/* ---------- Botón flotante del coach: brillo pulsante ---------- */
+.coach-fab{animation:fabGlow 2.6s ease-in-out infinite}
+@keyframes fabGlow{0%,100%{box-shadow:0 12px 35px rgba(0,0,0,.42)}50%{box-shadow:0 12px 46px rgba(98,229,194,.4)}}
+
+/* ---------- Accesibilidad: respeta "reducir movimiento" ---------- */
+@media (prefers-reduced-motion:reduce){
+  .brand .coin,.brand .coin::after,.mkt tr:hover .coinname .ic,
+  body::after,.progressline div::after,.hub-progress div::after,.kiosk-progress i::after,
+  .rail button.active,.rail button.done .n,.task.ok,.acard.learned,.mission-card.done,
+  .badge.won,.opt.sel,.role.sel,.strategy-choice.sel,.newsitem.sel,.coach-fab,.modal{
+    animation:none !important;
+  }
+}
+
+/* ---------- Texto: colores con más carácter + brillo en palabras clave ---------- */
+/* Se mantiene la paleta original (dorado/verde/rojo/violeta); solo se le da más "peso"
+   a lo que ya era importante, con un resplandor sutil — no se pinta todo, solo lo clave. */
+
+/* Títulos de misión: un aire dorado tenue detrás del texto */
+h2.title{text-shadow:0 0 26px rgba(242,180,65,.16)}
+.kicker{text-shadow:0 0 12px rgba(242,180,65,.45);letter-spacing:2.8px}
+
+/* La palabra protagonista del hero (ej. "USD 100 000") */
+.hero h2 .g{color:#FFD98C;text-shadow:0 0 18px rgba(242,180,65,.6),0 0 44px rgba(242,180,65,.28)}
+.capital{text-shadow:0 0 36px rgba(43,217,143,.45),0 0 70px rgba(43,217,143,.18)}
+
+/* Términos del glosario: brillan un poco para invitar al clic */
+.term{text-shadow:0 0 8px rgba(242,180,65,.3);transition:color .2s,text-shadow .2s}
+.term:hover{color:#FFD98C;text-shadow:0 0 16px rgba(242,180,65,.65)}
+
+/* Subidas y bajadas de precio: neón sutil, estilo terminal de trading */
+.up{text-shadow:0 0 9px rgba(43,217,143,.45)}
+.down{text-shadow:0 0 9px rgba(255,90,110,.45)}
+
+/* Cifras y etiquetas destacadas (XP, nivel, capitalización, conceptos clave) */
+.pill b{text-shadow:0 0 8px rgba(242,180,65,.4)}
+.pill.level b{text-shadow:0 0 8px rgba(124,108,240,.5)}
+.concept b{text-shadow:0 0 8px rgba(242,180,65,.35)}
+.tmap td b{text-shadow:0 0 6px rgba(242,180,65,.3)}
+.donut-center b{text-shadow:0 0 14px rgba(242,180,65,.4)}
+.decision-title b{color:var(--txt)}
+
+/* Marca del encabezado */
+.brand h1{text-shadow:0 0 14px rgba(242,180,65,.16)}
