@@ -4,8 +4,603 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Crypto Challenge FCEE · Simulador Interactivo</title>
-<link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="enhance-ui.css">
+<style>
+:root{
+  --bg:#070B14; --panel:#0E1524; --panel2:#121B2E; --line:#1E2A44;
+  --gold:#F2B441; --gold-soft:rgba(242,180,65,.12);
+  --up:#2BD98F; --down:#FF5A6E; --violet:#7C6CF0;
+  --txt:#E8EDF6; --muted:#8B96AB; --muted2:#5E6A82;
+  --disp:'Space Grotesk',system-ui,sans-serif;
+  --body:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:var(--body);font-size:16px;line-height:1.55;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;background:
+  radial-gradient(1200px 600px at 80% -10%, rgba(124,108,240,.10), transparent 60%),
+  radial-gradient(900px 500px at 10% 110%, rgba(242,180,65,.07), transparent 60%);
+  pointer-events:none;z-index:0}
+main,header,.ticker-wrap,footer{position:relative;z-index:1}
+
+/* ---------- Ticker ---------- */
+.ticker-wrap{background:#05080F;border-bottom:1px solid var(--line);overflow:hidden;height:38px;display:flex;align-items:center}
+.ticker{display:flex;gap:34px;white-space:nowrap;animation:tick 45s linear infinite;font-family:var(--mono);font-size:13px;padding-left:100%}
+@keyframes tick{to{transform:translateX(-100%)}}
+.ticker span b{color:var(--txt);font-weight:500}
+.tk-up{color:var(--up)} .tk-down{color:var(--down)}
+@media (prefers-reduced-motion:reduce){.ticker{animation:none;padding-left:12px;overflow-x:auto}}
+
+/* ---------- Header ---------- */
+header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 22px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:rgba(7,11,20,.85);backdrop-filter:blur(8px);position:sticky;top:0;z-index:40}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .coin{width:40px;height:40px;border-radius:50%;background:conic-gradient(from 210deg,var(--gold),#8a5b12 55%,var(--gold));display:grid;place-items:center;font-family:var(--disp);font-weight:700;color:#241703;font-size:18px;box-shadow:0 0 22px rgba(242,180,65,.35)}
+.brand h1{font-family:var(--disp);font-size:19px;font-weight:700;letter-spacing:.2px}
+.brand small{display:block;color:var(--muted);font-size:11.5px;font-weight:400;letter-spacing:.6px;text-transform:uppercase}
+.logoplate{background:#fff;border-radius:10px;padding:6px 12px;display:flex;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.logoplate img{height:34px;width:auto;display:block}
+@media(max-width:560px){.logoplate img{height:26px}}
+.savechip{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:7px 14px;font-size:12px;color:var(--muted2);display:flex;gap:7px;align-items:center;font-family:var(--mono);transition:.3s}
+.savechip.flash{border-color:var(--up);color:var(--up)}
+.teampill{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resume-card{text-align:center}
+.resume-card .rc-ic{font-size:44px;margin-bottom:8px}
+.resume-card h3{font-size:22px}
+.resume-card .rc-info{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:16px 0;font-size:14px;color:var(--muted);text-align:left}
+.resume-card .rc-info b{color:var(--txt)}
+.resume-card .rc-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.tmap{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.tmap th,.tmap td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.tmap th{background:var(--panel2);font-family:var(--mono);font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.tmap td b{color:var(--gold)}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pill{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:7px 14px;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.pill b{color:var(--gold);font-family:var(--mono)}
+.pill.level b{color:var(--violet)}
+.progressline{flex-basis:100%;height:5px;border-radius:99px;background:var(--panel2);overflow:hidden;margin-top:2px}
+.progressline div{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--up));transition:width .6s;border-radius:99px}
+.btn{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--txt);font-family:var(--body);font-size:14px;font-weight:500;border-radius:11px;padding:10px 16px;transition:.18s}
+.btn:hover{border-color:var(--gold);transform:translateY(-1px)}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn.gold{background:var(--gold);color:#241703;border-color:var(--gold);font-weight:600}
+.btn.gold:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:9px}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* ---------- Mission rail ---------- */
+.rail{display:flex;gap:8px;overflow-x:auto;padding:14px 22px;border-bottom:1px solid var(--line)}
+.rail button{flex:0 0 auto;display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:11px;padding:9px 14px;font-size:13px;font-family:var(--body);cursor:pointer;transition:.18s}
+.rail button .n{width:22px;height:22px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-family:var(--mono);font-size:12px;border:1px solid var(--line)}
+.rail button.active{border-color:var(--gold);color:var(--txt);box-shadow:0 0 0 1px var(--gold) inset}
+.rail button.done .n{background:var(--up);color:#03130b;border-color:var(--up)}
+.rail button.locked{opacity:.45;cursor:not-allowed}
+
+/* ---------- Layout ---------- */
+main{max-width:1120px;margin:0 auto;padding:28px 22px 90px}
+.screen{display:none;animation:fade .35s ease}
+.screen.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h2.title{font-family:var(--disp);font-size:clamp(26px,4vw,38px);font-weight:700;line-height:1.15;margin-bottom:6px}
+.kicker{color:var(--gold);font-family:var(--mono);font-size:12.5px;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:10px}
+.sub{color:var(--muted);max-width:74ch;margin-bottom:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin-bottom:18px}
+.card h3{font-family:var(--disp);font-size:18px;margin-bottom:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:820px){.grid2,.grid3{grid-template-columns:1fr}}
+
+/* Objetivos de aprendizaje */
+.learn{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.learn span{font-size:12.5px;background:rgba(124,108,240,.12);color:#B3A9F8;border:1px solid rgba(124,108,240,.35);border-radius:99px;padding:5px 13px}
+.learn .lt{color:var(--muted);border:none;background:none;padding:5px 2px}
+
+/* Guía paso a paso */
+.guide{border:1px solid rgba(124,108,240,.4);background:linear-gradient(135deg,rgba(124,108,240,.08),transparent);border-radius:var(--r);margin-bottom:18px;overflow:hidden}
+.guide summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;padding:15px 20px;font-family:var(--disp);font-weight:600;font-size:15.5px}
+.guide summary::-webkit-details-marker{display:none}
+.guide summary .arr{margin-left:auto;transition:.25s;color:var(--muted)}
+.guide[open] summary .arr{transform:rotate(180deg)}
+.gsteps{padding:2px 20px 18px;display:grid;gap:10px}
+.gstep{display:flex;gap:13px;align-items:flex-start}
+.gstep .gn{flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:var(--violet);color:#fff;display:grid;place-items:center;font-family:var(--mono);font-size:13px;font-weight:600;margin-top:1px}
+.gstep p{font-size:14.5px;color:var(--txt)}
+.gstep p small{display:block;color:var(--muted);font-size:13px;margin-top:1px}
+
+/* Concepto clave */
+.concept{display:flex;gap:13px;background:var(--gold-soft);border:1px solid rgba(242,180,65,.4);border-radius:12px;padding:14px 16px;margin:12px 0;font-size:14px}
+.concept .ci{font-size:20px;flex:0 0 auto}
+.concept b{color:var(--gold)}
+.concept p{color:var(--txt)}
+
+/* Término clickeable (glosario) */
+.term{color:var(--gold);border-bottom:1px dotted var(--gold);cursor:help;font-weight:500}
+
+/* ---------- Narrator ---------- */
+.dg{display:flex;gap:16px;background:linear-gradient(135deg,var(--panel2),var(--panel));border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--r);padding:18px 20px;margin-bottom:20px}
+.dg .avatar{flex:0 0 52px;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#3a4a72,#141d33);display:grid;place-items:center;font-family:var(--disp);font-weight:700;color:var(--gold);font-size:17px;border:1px solid var(--line)}
+.dg .who{font-family:var(--mono);font-size:11.5px;color:var(--gold);letter-spacing:1.6px;text-transform:uppercase;margin-bottom:5px}
+.dg p{color:var(--txt);font-size:15.5px}
+.dg p em{color:var(--muted)}
+
+/* ---------- Intro / Academia ---------- */
+.hero{text-align:center;padding:44px 10px 30px}
+.hero .glow{font-family:var(--mono);color:var(--gold);letter-spacing:3px;font-size:13px;text-transform:uppercase}
+.hero h2{font-family:var(--disp);font-size:clamp(34px,6vw,60px);font-weight:700;line-height:1.08;margin:14px 0 10px}
+.hero h2 .g{color:var(--gold)}
+.hero p{color:var(--muted);max-width:64ch;margin:0 auto 26px;font-size:17px}
+.capital{font-family:var(--mono);font-size:clamp(30px,5vw,46px);color:var(--up);text-shadow:0 0 30px rgba(43,217,143,.35);margin:8px 0 26px}
+.story-step{display:none}
+.story-step.on{display:block;animation:fade .45s ease}
+.chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:26px}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:8px 16px;font-size:13.5px;color:var(--muted)}
+.chip b{color:var(--txt)}
+.acad{display:grid;grid-template-columns:1fr 1fr;gap:14px;text-align:left;max-width:900px;margin:0 auto 22px}
+@media(max-width:760px){.acad{grid-template-columns:1fr}}
+.acard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;transition:.25s;position:relative}
+.acard.learned{border-color:var(--up)}
+.acard .ah{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+.acard .ai{width:40px;height:40px;border-radius:11px;background:var(--gold-soft);display:grid;place-items:center;font-size:20px;flex:0 0 40px}
+.acard h4{font-family:var(--disp);font-size:16.5px}
+.acard p{font-size:13.8px;color:var(--muted);margin-bottom:8px}
+.acard p b{color:var(--txt)}
+.acard .ex{font-size:13px;background:var(--panel2);border-left:2px solid var(--gold);border-radius:0 9px 9px 0;padding:9px 12px;color:var(--txt);margin-bottom:12px}
+.acard .ex b{color:var(--gold)}
+.acard .okbtn{width:100%}
+.acard .okbtn.done{background:rgba(43,217,143,.14);border-color:var(--up);color:var(--up)}
+label.f{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px;font-weight:500}
+input[type=text],textarea,select,input[type=number]{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--txt);font-family:var(--body);font-size:15px;padding:11px 13px}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
+textarea{resize:vertical;min-height:76px}
+.roles{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.role{flex:1 1 140px;cursor:pointer;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px;text-align:center;transition:.18s}
+.role:hover{border-color:var(--muted)}
+.role.sel{border-color:var(--gold);background:var(--gold-soft)}
+.role b{display:block;font-family:var(--disp);font-size:17px}
+.role span{font-size:12px;color:var(--muted)}
+
+/* ---------- Market table ---------- */
+.mkt{width:100%;border-collapse:collapse;font-size:14px}
+.mkt th{font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted2);text-align:right;padding:9px 10px;border-bottom:1px solid var(--line)}
+.mkt th:first-child,.mkt td:first-child{text-align:left}
+.mkt td{padding:11px 10px;border-bottom:1px solid rgba(30,42,68,.55);text-align:right;font-family:var(--mono);font-size:13.5px}
+.mkt tr:hover td{background:rgba(242,180,65,.04)}
+.coinname{display:flex;align-items:center;gap:10px;font-family:var(--body)}
+.coinname .ic{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-family:var(--disp);font-weight:700;font-size:11px;flex:0 0 30px}
+.coinname b{font-size:14px}
+.coinname small{color:var(--muted);font-size:11.5px;display:block}
+.up{color:var(--up)} .down{color:var(--down)}
+.volb{font-family:var(--body);font-size:11px;padding:3px 9px;border-radius:99px;font-weight:600}
+.v1{background:rgba(43,217,143,.14);color:var(--up)}
+.v2{background:rgba(242,180,65,.14);color:var(--gold)}
+.v3{background:rgba(255,90,110,.14);color:var(--down)}
+.spark{width:90px;height:26px}
+.tblwrap{overflow-x:auto;margin:0 -6px}
+.flash-up{animation:fup .7s} .flash-down{animation:fdn .7s}
+@keyframes fup{0%{background:rgba(43,217,143,.22)}100%{background:transparent}}
+@keyframes fdn{0%{background:rgba(255,90,110,.22)}100%{background:transparent}}
+/* Leyenda de columnas */
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:14px}
+.legend div{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:12.8px;color:var(--muted)}
+.legend b{display:block;color:var(--txt);font-size:13px;margin-bottom:2px}
+.legend .lc{font-family:var(--mono);color:var(--gold);font-size:11px;letter-spacing:1px}
+
+/* ---------- Tasks / quiz ---------- */
+.task{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;background:var(--panel2)}
+.task .th{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.task .num{width:26px;height:26px;border-radius:8px;background:var(--gold-soft);color:var(--gold);display:grid;place-items:center;font-family:var(--mono);font-size:13px;flex:0 0 26px}
+.task h4{font-size:15px;font-weight:600}
+.task .st{margin-left:auto;font-size:12px;font-family:var(--mono);color:var(--muted2);white-space:nowrap}
+.task.ok{border-color:rgba(43,217,143,.5)}
+.task.ok .st{color:var(--up)}
+.howto{font-size:13px;color:var(--muted);background:rgba(124,108,240,.08);border:1px dashed rgba(124,108,240,.4);border-radius:9px;padding:9px 12px;margin:6px 0 10px}
+.howto b{color:#B3A9F8}
+.opts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.opt{cursor:pointer;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:8px 13px;font-size:13.5px;transition:.15s}
+.opt:hover{border-color:var(--muted)}
+.opt.sel{border-color:var(--gold);background:var(--gold-soft)}
+.opt.right{border-color:var(--up);background:rgba(43,217,143,.12)}
+.opt.wrong{border-color:var(--down);background:rgba(255,90,110,.12)}
+.hint{font-size:13px;color:var(--muted);margin-top:8px}
+.hint.ok{color:var(--up)} .hint.err{color:var(--down)}
+
+/* ---------- News ---------- */
+.news{display:grid;gap:10px}
+.newsitem{cursor:pointer;display:flex;gap:12px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 15px;transition:.15s}
+.newsitem:hover{border-color:var(--muted)}
+.newsitem.sel{border-color:var(--gold);background:var(--gold-soft)}
+.newsitem .tag{flex:0 0 auto;font-size:10.5px;font-weight:700;letter-spacing:.8px;padding:4px 9px;border-radius:6px;text-transform:uppercase;margin-top:2px}
+.t-pos{background:rgba(43,217,143,.15);color:var(--up)}
+.t-neg{background:rgba(255,90,110,.15);color:var(--down)}
+.t-neu{background:rgba(124,108,240,.15);color:var(--violet)}
+.newsitem b{font-size:14px;display:block}
+.newsitem span{font-size:12.5px;color:var(--muted)}
+.newsitem .why{display:none;font-size:12.5px;color:var(--gold);margin-top:5px}
+.newsitem.sel .why{display:block}
+
+/* ---------- Sliders (Misión 2) ---------- */
+.alloc{margin-bottom:16px}
+.alloc .row{display:flex;align-items:center;gap:14px;margin-bottom:4px}
+.alloc .row .nm{flex:0 0 150px;display:flex;align-items:center;gap:9px;font-weight:600;font-size:14.5px}
+.alloc input[type=range]{flex:1;accent-color:var(--gold);height:6px}
+.alloc .pct{flex:0 0 130px;text-align:right;font-family:var(--mono);font-size:15px}
+.alloc .pct small{color:var(--muted);display:block;font-size:11.5px}
+.totalbar{height:14px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);overflow:hidden;display:flex;margin:10px 0 6px}
+.totalbar div{height:100%;transition:width .25s}
+.totline{display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--muted)}
+.totline b.ok{color:var(--up)} .totline b.bad{color:var(--down)}
+.rulebox{border:1px dashed rgba(242,180,65,.5);border-radius:11px;padding:12px 15px;font-size:13.5px;color:var(--gold);background:var(--gold-soft);margin-top:12px}
+.cohere{border-radius:11px;padding:12px 15px;font-size:13.5px;margin-top:12px;border:1px solid var(--line);background:var(--panel2)}
+.cohere.good{border-color:rgba(43,217,143,.5);color:var(--up)}
+.cohere.warn{border-color:rgba(242,180,65,.5);color:var(--gold)}
+
+/* ---------- Misión 3 ---------- */
+.buyrow{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr auto;gap:12px;align-items:start;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--panel2)}
+@media(max-width:820px){.buyrow{grid-template-columns:1fr 1fr}}
+.buyrow .lab{font-size:11px;color:var(--muted2);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:block}
+.buyrow .val{font-family:var(--mono);font-size:15px;padding-top:8px}
+.tgt{font-size:11.5px;font-family:var(--mono);margin-top:5px;line-height:1.5}
+.tgt .tp{color:var(--up)} .tgt .sl{color:var(--down)}
+.chart{width:100%;height:230px;background:var(--panel2);border:1px solid var(--line);border-radius:12px}
+.eventlog{font-family:var(--mono);font-size:12.5px;background:#05080F;border:1px solid var(--line);border-radius:12px;padding:14px;max-height:210px;overflow-y:auto;line-height:1.9}
+.eventlog .d{color:var(--muted2)} .eventlog .pos{color:var(--up)} .eventlog .neg{color:var(--down)} .eventlog .neu{color:var(--violet)}
+.bigpl{font-family:var(--mono);font-size:clamp(26px,4vw,40px);font-weight:500}
+
+/* ---------- Report table ---------- */
+.rep{width:100%;border-collapse:collapse;font-size:13.5px}
+.rep th,.rep td{border:1px solid var(--line);padding:9px 11px;text-align:left}
+.rep th{background:var(--panel2);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.rep td{font-family:var(--mono);font-size:13px}
+
+/* ---------- Badges / progress ---------- */
+/* Corrección: con flex-wrap las insignias quedaban desalineadas (filas con
+   distinto número de tarjetas y anchos irregulares). Grid real con columnas
+   parejas y misma altura de tarjeta en toda la fila. */
+.badges{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;align-items:stretch}
+.badge{text-align:center;border:1px solid var(--line);border-radius:14px;padding:18px 10px;background:var(--panel2);opacity:.35;transition:.3s}
+.badge.won{opacity:1;border-color:var(--gold);box-shadow:0 0 18px rgba(242,180,65,.15)}
+.badge .em{font-size:30px}
+.badge b{display:block;font-family:var(--disp);font-size:14px;margin-top:6px}
+.badge span{font-size:11.5px;color:var(--muted)}
+.wordcount{font-family:var(--mono);font-size:12.5px;margin-top:6px}
+.wordcount.ok{color:var(--up)} .wordcount.bad{color:var(--down)}
+
+/* ---------- Timer / toast / modal ---------- */
+.timer{font-family:var(--mono);font-size:13px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--panel);border:1px solid var(--gold);color:var(--txt);border-radius:12px;padding:13px 22px;font-size:14.5px;z-index:99;transition:.35s;box-shadow:0 10px 40px rgba(0,0,0,.5);max-width:92vw}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast b{color:var(--gold)}
+.modal-bk{position:fixed;inset:0;background:rgba(4,7,13,.75);backdrop-filter:blur(4px);z-index:80;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bk.on{display:flex}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:640px;width:100%;max-height:82vh;overflow-y:auto;padding:26px}
+.modal h3{font-family:var(--disp);font-size:20px;margin-bottom:14px}
+.gterm{border-bottom:1px solid var(--line);padding:11px 0;border-radius:8px;transition:.4s}
+.gterm.hl{background:var(--gold-soft);padding-left:10px;padding-right:10px}
+.gterm b{color:var(--gold);font-size:14.5px}
+.gterm p{font-size:13.5px;color:var(--muted);margin-top:3px}
+.gterm .ana{font-size:12.8px;color:var(--txt);margin-top:4px}
+.gterm .ana b{font-size:12.8px}
+.srcbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.srcbtns a{text-decoration:none}
+
+footer{border-top:1px solid var(--line);padding:22px;text-align:center;color:var(--muted2);font-size:12.5px}
+.navbtns{display:flex;justify-content:space-between;gap:12px;margin-top:26px;flex-wrap:wrap}
+
+/* ---------- Print report ---------- */
+#report{display:none}
+@media print{
+  html,body{background:#fff;color:#111;height:auto !important;overflow:visible !important}
+  body::before,body::after{display:none !important}
+  header,.ticker-wrap,.rail,main,footer,.toast,.modal-bk,
+  .coach-fab,.coach-panel{display:none !important}
+  #report{display:block !important;position:static !important;padding:24px;font-family:Georgia,serif;color:#111}
+  #report h1{font-size:22px;margin-bottom:2px}
+  #report h2{font-size:15px;color:#555;font-weight:400;margin-bottom:16px}
+  #report h3{font-size:15px;margin:18px 0 6px;border-bottom:2px solid #F2B441;display:inline-block;padding-bottom:2px}
+  #report table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+  #report th,#report td{border:1px solid #999;padding:6px 8px;text-align:left}
+  #report th{background:#f3f3f3}
+  #report p{font-size:13px;margin:4px 0}
+  #report .meta{font-size:12px;color:#444}
+}
+
+
+/* ---------- Experiencia flexible, mapa y ficha objetivo ---------- */
+.member-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.route-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:980px;margin:0 auto 14px;text-align:left}
+.route-card{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(18,27,46,.92),rgba(9,15,28,.84));border:1px solid rgba(124,108,240,.38);border-radius:16px;padding:18px;min-height:150px;transition:.25s;box-shadow:0 14px 34px rgba(0,0,0,.2)}
+.route-card::after{content:"";position:absolute;width:130px;height:130px;border-radius:50%;right:-54px;bottom:-62px;background:radial-gradient(circle,rgba(43,217,143,.2),transparent 68%)}
+.route-card:hover{transform:translateY(-5px);border-color:var(--gold);box-shadow:0 18px 50px rgba(124,108,240,.22)}
+.route-card span{font-family:var(--mono);font-size:11px;color:var(--up);letter-spacing:1.2px;text-transform:uppercase}.route-card h4{font-family:var(--disp);font-size:19px;margin:8px 0 6px}.route-card p{font-size:13.5px;color:var(--muted)}
+.route-note{max-width:850px;margin:0 auto 22px;color:var(--muted);font-size:14px;padding:10px 14px;border:1px dashed rgba(242,180,65,.45);border-radius:11px;background:var(--gold-soft)}
+.source-lab{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;background:linear-gradient(135deg,rgba(43,217,143,.08),rgba(124,108,240,.08));border:1px solid rgba(43,217,143,.35);border-radius:15px;padding:16px 18px;margin:0 0 18px}.source-orb{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:rgba(43,217,143,.12);font-size:23px}.source-lab b{font-family:var(--disp)}.source-lab p{font-size:13.5px;color:var(--muted);margin-top:3px}.source-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.source-actions a{text-decoration:none}
+.mission-flex-note{display:flex;gap:12px;align-items:flex-start;border:1px solid rgba(43,217,143,.36);background:linear-gradient(120deg,rgba(43,217,143,.08),rgba(124,108,240,.08));border-radius:13px;padding:13px 15px;margin:0 0 18px}.mission-flex-note .mficon{font-size:21px}.mission-flex-note b{color:var(--up)}.mission-flex-note p{font-size:13.5px;color:var(--muted)}
+.mapbtn{border-color:rgba(43,217,143,.45)!important;box-shadow:0 0 18px rgba(43,217,143,.08)}
+.mission-modal{max-width:1040px!important}.mission-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:14px}.mission-head h3{font-size:25px}.mission-head p{color:var(--muted);font-size:14px;max-width:70ch}
+.time-routes{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}.time-routes span{font-family:var(--mono);font-size:11.5px;padding:6px 10px;border:1px solid var(--line);background:var(--panel2);border-radius:999px;color:var(--muted)}
+.mission-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.mission-card{position:relative;min-height:230px;background:linear-gradient(150deg,var(--panel2),rgba(7,11,20,.96));border:1px solid var(--line);border-radius:15px;padding:17px;display:flex;flex-direction:column;transition:.25s;overflow:hidden}.mission-card::before{content:"";position:absolute;inset:-45% 15% auto -35%;height:150px;background:radial-gradient(circle,rgba(124,108,240,.22),transparent 70%);pointer-events:none}.mission-card:hover{transform:translateY(-5px);border-color:var(--gold);box-shadow:0 15px 40px rgba(0,0,0,.35)}.mission-card.done{border-color:rgba(43,217,143,.65)}.mission-card .mc-top{display:flex;justify-content:space-between;align-items:center;position:relative}.mission-card .mc-icon{font-size:28px}.mission-card .mc-status{font-family:var(--mono);font-size:10px;padding:4px 7px;border-radius:999px;background:rgba(242,180,65,.12);color:var(--gold)}.mission-card.done .mc-status{background:rgba(43,217,143,.13);color:var(--up)}.mission-card h4{font-family:var(--disp);font-size:17px;margin:14px 0 6px;position:relative}.mission-card p{font-size:12.8px;color:var(--muted);flex:1;position:relative}.mission-card .mc-time{font-family:var(--mono);font-size:11px;color:var(--violet);margin:8px 0}.mission-card .btn{width:100%;position:relative}
+.hub-progress{height:11px;background:var(--panel2);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin:10px 0 5px}.hub-progress div{height:100%;background:linear-gradient(90deg,var(--violet),var(--gold),var(--up));transition:.4s}.hub-summary{display:flex;justify-content:space-between;color:var(--muted);font-size:12.5px;font-family:var(--mono)}
+.objective-modal{max-width:1180px!important;padding:0!important;overflow:hidden!important}.objective-scroll{max-height:88vh;overflow:auto;padding:24px}.objective-head{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start;padding:20px;border:1px solid rgba(242,180,65,.34);background:linear-gradient(125deg,rgba(242,180,65,.13),rgba(124,108,240,.08));border-radius:15px;margin-bottom:16px}.objective-head .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:1.6px;color:var(--gold);text-transform:uppercase}.objective-head h3{font-size:28px;margin:5px 0}.objective-head p{color:var(--muted);font-size:14px}.mission-stamp{width:82px;height:82px;border-radius:50%;display:grid;place-items:center;text-align:center;border:2px solid var(--gold);box-shadow:0 0 26px rgba(242,180,65,.22);font-family:var(--mono);font-size:11px;color:var(--gold);transform:rotate(4deg)}
+.objective-meta{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}.objective-team{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.objective-table-wrap{overflow:auto;margin-top:14px;border:1px solid var(--line);border-radius:13px}.objective-table{width:100%;border-collapse:collapse;min-width:1120px;font-size:12.5px}.objective-table th{position:sticky;top:0;background:#111b30;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.6px;font-size:10px;padding:9px;border:1px solid var(--line);z-index:2}.objective-table td{padding:7px;border:1px solid var(--line);vertical-align:top}.objective-table input,.objective-table select,.objective-table textarea{min-width:90px;padding:8px;font-size:12.5px;border-radius:8px}.objective-table textarea{min-width:190px;min-height:62px}.objective-table .calc{font-family:var(--mono);padding:9px 5px;white-space:nowrap}.objective-totals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.objective-kpi{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}.objective-kpi span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}.objective-kpi b{font-family:var(--mono);font-size:18px}.allocation-visual{height:18px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);display:flex;overflow:hidden;margin:12px 0 5px}.allocation-visual i{display:block;height:100%;transition:.25s}.allocation-legend{font-size:12px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}.objective-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}.objective-help{border:1px dashed rgba(124,108,240,.5);background:rgba(124,108,240,.07);border-radius:12px;padding:12px 14px;color:var(--muted);font-size:13px;margin-top:12px}.objective-help b{color:#c1b9ff}.authority-callout{border:1px solid rgba(43,217,143,.35);background:rgba(43,217,143,.07);border-radius:11px;padding:12px 14px;font-size:13.5px;color:var(--muted);margin:10px 0 14px}.authority-callout b{color:var(--up)}
+.rail button.sheeted{box-shadow:0 0 0 1px rgba(124,108,240,.7) inset}.rail button.sheeted::after{content:"▣";color:var(--violet);font-size:10px}
+@media(max-width:1000px){.mission-grid{grid-template-columns:repeat(2,1fr)}.source-lab{grid-template-columns:auto 1fr}.source-actions{grid-column:1/-1;justify-content:flex-start}.objective-meta{grid-template-columns:1fr 1fr}.objective-meta>label:first-child{grid-column:1/-1}}
+@media(max-width:700px){.member-grid,.route-grid,.objective-team,.objective-meta,.objective-totals{grid-template-columns:1fr}.mission-grid{grid-template-columns:1fr}.mission-head{display:block}.mission-head .btn{margin-top:10px}.objective-head{grid-template-columns:1fr}.mission-stamp{width:62px;height:62px}.route-card{min-height:auto}}
+
+
+
+/* ================================================================
+   CAPA AMIGABLE V3 · orientación para estudiantes de primer ingreso
+   ================================================================ */
+:root{--friendly:#62E5C2;--friendly-soft:rgba(98,229,194,.11);--blue:#59A8FF;--blue-soft:rgba(89,168,255,.12)}
+body{font-size:16.5px}
+.btn{min-height:42px}.btn.sm{min-height:36px}
+.friendly-help-btn{border-color:rgba(98,229,194,.55)!important;background:var(--friendly-soft)!important;color:var(--friendly)!important}
+.student-compass{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:stretch;margin:0 0 18px;padding:12px;background:linear-gradient(120deg,rgba(89,168,255,.08),rgba(98,229,194,.07));border:1px solid rgba(89,168,255,.3);border-radius:14px}
+.compass-cell{padding:9px 11px;border-radius:10px;background:rgba(7,11,20,.55);border:1px solid rgba(255,255,255,.05)}
+.compass-cell span{display:block;color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}.compass-cell b{font-size:13.5px;line-height:1.35}.compass-help{align-self:center;white-space:nowrap}
+.beginner-banner{display:flex;gap:12px;align-items:flex-start;max-width:900px;margin:0 auto 20px;padding:13px 15px;border-radius:13px;border:1px solid rgba(98,229,194,.35);background:linear-gradient(120deg,rgba(98,229,194,.08),rgba(89,168,255,.07));text-align:left}.beginner-banner .bb-icon{font-size:24px}.beginner-banner b{color:var(--friendly)}.beginner-banner p{font-size:13.7px;color:var(--muted);margin-top:2px}
+.quick-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 auto 22px}.quick-actions .btn{min-width:190px}
+.route-selector{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.route-selector button{cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--muted);border-radius:999px;padding:8px 12px;font:500 12.5px var(--body);transition:.18s}.route-selector button:hover,.route-selector button.sel{border-color:var(--friendly);color:var(--friendly);background:var(--friendly-soft)}
+.route-advice{display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:11px 13px;margin-bottom:12px;border:1px solid rgba(98,229,194,.28);background:rgba(98,229,194,.06);font-size:13.5px;color:var(--muted)}.route-advice b{color:var(--txt)}
+.mission-card.recommended{border-color:var(--friendly);box-shadow:0 0 0 1px rgba(98,229,194,.25),0 16px 40px rgba(0,0,0,.32)}.mission-card.recommended::after{content:"RECOMENDADA";position:absolute;right:-32px;top:17px;transform:rotate(36deg);background:var(--friendly);color:#06231b;font:700 9px var(--mono);letter-spacing:.7px;padding:4px 36px}.mission-card.route-pick{border-color:rgba(89,168,255,.7)}
+.mission-card .mc-do,.mission-card .mc-get{position:relative;font-size:12px;color:var(--muted);margin-top:7px;padding-left:18px}.mission-card .mc-do::before{content:"→";position:absolute;left:0;color:var(--blue)}.mission-card .mc-get::before{content:"✓";position:absolute;left:0;color:var(--friendly)}.mission-card .mc-get{margin-bottom:4px}
+.no-wrong{display:flex;gap:10px;align-items:flex-start;margin:12px 0 0;padding:10px 12px;border-radius:11px;background:rgba(89,168,255,.07);border:1px dashed rgba(89,168,255,.35);color:var(--muted);font-size:13px}.no-wrong b{color:var(--blue)}
+
+/* Coach lateral */
+.coach-fab{position:fixed;right:22px;bottom:22px;z-index:73;border:none;border-radius:999px;background:linear-gradient(135deg,var(--friendly),var(--blue));color:#06151c;font:700 14px var(--body);padding:13px 17px;box-shadow:0 12px 35px rgba(0,0,0,.42);cursor:pointer;display:flex;gap:8px;align-items:center}.coach-fab:hover{transform:translateY(-2px)}
+.coach-panel{position:fixed;right:0;top:0;bottom:0;width:min(410px,94vw);z-index:95;background:rgba(9,15,28,.98);border-left:1px solid rgba(98,229,194,.35);box-shadow:-18px 0 55px rgba(0,0,0,.55);transform:translateX(105%);transition:.28s;display:flex;flex-direction:column}.coach-panel.on{transform:none}.coach-head{padding:20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}.coach-head h3{font-family:var(--disp);font-size:21px}.coach-head p{font-size:12.5px;color:var(--muted);margin-top:3px}.coach-body{padding:18px 20px;overflow:auto}.coach-now{border:1px solid rgba(98,229,194,.35);background:var(--friendly-soft);border-radius:13px;padding:13px;margin-bottom:14px}.coach-now span{font:10px var(--mono);letter-spacing:1px;color:var(--friendly);text-transform:uppercase}.coach-now b{display:block;margin-top:4px}.coach-step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(30,42,68,.65)}.coach-step i{flex:0 0 28px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue);font:normal 700 12px var(--mono)}.coach-step b{display:block;font-size:14px}.coach-step p{font-size:12.8px;color:var(--muted);margin-top:2px}.coach-tip{margin-top:14px;padding:12px;border-radius:11px;background:var(--gold-soft);border:1px solid rgba(242,180,65,.3);font-size:13px;color:var(--muted)}.coach-tip b{color:var(--gold)}.coach-actions{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+
+/* Ficha objetivo guiada */
+.friendly-objective input,.friendly-objective textarea,.friendly-objective select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--txt);font-family:var(--body);font-size:15px;padding:11px 13px}.friendly-objective input:disabled{background:#0b1322;color:var(--muted);opacity:1;cursor:not-allowed}.friendly-objective input:focus,.friendly-objective textarea:focus,.friendly-objective select:focus{outline:2px solid var(--friendly);outline-offset:1px;border-color:var(--friendly)}
+.objective-modal.friendly-objective{max-width:1040px!important}.objective-scroll.friendly-scroll{padding:20px;max-height:92vh}.objective-friendly-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding:17px;border-radius:15px;background:linear-gradient(125deg,rgba(98,229,194,.1),rgba(89,168,255,.09));border:1px solid rgba(98,229,194,.28)}.objective-friendly-head .eyebrow{font:10.5px var(--mono);letter-spacing:1.3px;color:var(--friendly);text-transform:uppercase}.objective-friendly-head h3{font-size:25px;margin:4px 0}.objective-friendly-head p{font-size:13.5px;color:var(--muted);max-width:70ch}.objective-head-actions{display:flex;gap:8px;align-items:center}.objective-mission-pill{border:1px solid var(--friendly);color:var(--friendly);border-radius:999px;padding:7px 10px;font:700 11px var(--mono);white-space:nowrap}
+.wizard-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.wizard-step{cursor:pointer;text-align:left;border:1px solid var(--line);background:var(--panel2);border-radius:11px;padding:10px 12px;color:var(--muted);font-family:var(--body)}.wizard-step span{display:inline-grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#1d2941;margin-right:6px;font:700 11px var(--mono)}.wizard-step.active{border-color:var(--friendly);color:var(--txt);background:var(--friendly-soft)}.wizard-step.active span,.wizard-step.done span{background:var(--friendly);color:#052018}.wizard-step.done{border-color:rgba(98,229,194,.4)}
+.wizard-panel{display:none;animation:fade .25s}.wizard-panel.on{display:block}.friendly-section{border:1px solid var(--line);background:rgba(14,21,36,.8);border-radius:14px;padding:16px;margin:10px 0}.friendly-section h4{font-family:var(--disp);font-size:17px;margin-bottom:4px}.friendly-section>.hint{margin-bottom:10px}
+.strategy-choices{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.strategy-choice{cursor:pointer;border:1px solid var(--line);background:var(--panel2);border-radius:11px;padding:11px;text-align:left;color:var(--txt)}.strategy-choice b{display:block}.strategy-choice small{color:var(--muted);font-size:11.5px}.strategy-choice.sel{border-color:var(--friendly);background:var(--friendly-soft)}
+.decision-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.decision-card{border:1px solid var(--line);background:linear-gradient(145deg,var(--panel2),rgba(7,11,20,.95));border-radius:14px;padding:14px;position:relative}.decision-card.good{border-color:rgba(98,229,194,.45)}.decision-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px}.decision-title b{font-family:var(--disp)}.decision-number{width:29px;height:29px;border-radius:9px;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue);font:700 12px var(--mono)}.field-help{font-size:11.5px;color:var(--muted);margin-top:4px}.decision-calc{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:9px 0}.decision-calc div{padding:8px;border:1px solid rgba(30,42,68,.8);border-radius:9px;background:rgba(7,11,20,.5)}.decision-calc span{display:block;color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.7px}.decision-calc b{font:600 12.5px var(--mono)}.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.advanced-toggle{margin-top:9px;border-top:1px solid rgba(30,42,68,.7);padding-top:8px}.advanced-toggle summary{cursor:pointer;color:var(--blue);font-size:12.5px}.advanced-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.reason-chips{display:flex;gap:6px;flex-wrap:wrap;margin:7px 0}.reason-chips button{cursor:pointer;border:1px solid rgba(89,168,255,.28);background:var(--blue-soft);color:#b8d9ff;border-radius:999px;padding:5px 8px;font-size:10.5px}.reason-chips button:hover{border-color:var(--blue)}
+.summary-layout{display:grid;grid-template-columns:280px 1fr;gap:16px;align-items:center}.donut-wrap{text-align:center}.objective-donut{width:210px;height:210px;border-radius:50%;margin:0 auto;position:relative;background:conic-gradient(#34415c 0 100%);box-shadow:0 0 0 1px var(--line),0 16px 38px rgba(0,0,0,.25)}.objective-donut::after{content:"";position:absolute;inset:38px;border-radius:50%;background:var(--panel);border:1px solid var(--line)}.donut-center{position:absolute;inset:0;z-index:2;display:grid;place-content:center}.donut-center span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}.donut-center b{font:700 24px var(--mono)}.summary-decisions{display:grid;gap:8px}.summary-row{display:grid;grid-template-columns:60px 1fr auto;gap:10px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}.summary-row .sym{font:700 13px var(--mono);color:var(--gold)}.summary-row p{font-size:12px;color:var(--muted)}.summary-row b{font:600 12px var(--mono)}
+.live-checklist{display:grid;gap:7px;margin-top:12px}.check-item{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--muted)}.check-item i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:rgba(255,90,110,.12);color:var(--down);font:normal 700 10px var(--mono)}.check-item.ok{color:var(--txt)}.check-item.ok i{background:var(--friendly-soft);color:var(--friendly)}
+.wizard-footer{position:sticky;bottom:-20px;margin:16px -20px -20px;padding:12px 20px;background:rgba(9,15,28,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center;z-index:4}.wizard-footer .wf-status{font-size:12.5px;color:var(--muted)}.wizard-footer .wf-status b{color:var(--friendly)}.wizard-footer .wf-actions{display:flex;gap:8px;flex-wrap:wrap}.draft-chip{font:11px var(--mono);color:var(--muted)}
+
+/* Escritura acompañada */
+.answer-builder{display:flex;justify-content:flex-end;margin:-2px 0 10px}.answer-builder .btn{font-size:12px}.optional-tag{font:700 9px var(--mono);color:var(--blue);border:1px solid rgba(89,168,255,.35);border-radius:999px;padding:3px 7px;margin-left:5px}.friendly-word-goal{border:1px solid rgba(98,229,194,.3);background:var(--friendly-soft);border-radius:10px;padding:9px 11px;margin-bottom:9px;color:var(--muted);font-size:12.7px}
+
+@media(max-width:900px){.student-compass{grid-template-columns:1fr 1fr}.compass-help{grid-column:1/-1}.decision-list{grid-template-columns:1fr}.summary-layout{grid-template-columns:1fr}.strategy-choices{grid-template-columns:1fr}.mission-card.recommended::after{display:none}}
+@media(max-width:620px){body{font-size:16px}.student-compass{grid-template-columns:1fr}.wizard-steps{grid-template-columns:1fr}.wizard-step{padding:8px 10px}.objective-friendly-head{display:block}.objective-head-actions{margin-top:10px}.mini-grid,.advanced-fields{grid-template-columns:1fr}.coach-fab{right:12px;bottom:12px;padding:12px 14px}.coach-fab span:last-child{display:none}.wizard-footer{display:block}.wizard-footer .wf-actions{margin-top:8px}.wizard-footer .btn{flex:1}.objective-scroll.friendly-scroll{padding:14px}.wizard-footer{margin:14px -14px -14px;bottom:-14px;padding:10px 14px}.route-selector button{flex:1}.quick-actions .btn{width:100%}}
+/* V4 · corrección de Tarea 4 y protocolo amigable de Misión 4 */
+.task-four{border-color:rgba(124,108,240,.52);background:linear-gradient(145deg,rgba(124,108,240,.09),var(--panel2))}
+.q4-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+.q4-news-option{width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;color:var(--txt);font-family:var(--body);transition:.18s;display:flex;gap:10px;align-items:flex-start}
+.q4-news-option:hover{border-color:var(--gold);transform:translateY(-1px)}
+.q4-news-option:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.q4-news-option.sel{border-color:var(--gold);background:var(--gold-soft);box-shadow:0 0 0 1px var(--gold) inset}
+.q4-news-option .q4-tag{flex:0 0 auto;font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;border-radius:6px;padding:4px 7px}
+.q4-news-option .q4-copy{min-width:0}
+.q4-news-option .q4-copy b{display:block;font-size:13.5px;line-height:1.35;margin-bottom:3px}
+.q4-news-option .q4-copy small{display:block;color:var(--muted);font-size:11.8px;line-height:1.35}
+.q4-analysis{margin-top:12px;background:rgba(43,217,143,.06);border:1px solid rgba(43,217,143,.35);border-radius:12px;padding:14px}
+.q4-analysis-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:7px}
+.q4-analysis-head span{font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;border-radius:99px;padding:4px 9px}
+.q4-analysis p{font-size:13.5px;color:var(--muted)}
+.q4-analysis textarea{min-height:68px}
+.q4-helper{font-size:12.5px;color:#B3A9F8;margin-top:7px}
+.kiosk-card{overflow:hidden}
+.kiosk-title-row{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.kiosk-title-row h3{margin-bottom:2px}
+.kiosk-setup{display:grid;grid-template-columns:1fr 1fr;gap:14px;background:var(--panel2);border:1px solid var(--line);padding:14px;border-radius:12px;margin:14px 0}
+.kiosk-setup .f{margin-top:0}
+.kiosk-example{display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(135deg,rgba(124,108,240,.12),rgba(242,180,65,.07));border:1px dashed rgba(124,108,240,.5);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.kiosk-example p{font-size:12.8px;color:var(--muted)}
+.kiosk-progress-wrap{margin:14px 0 18px}
+.kiosk-progress-copy{display:flex;justify-content:space-between;gap:12px;font-size:12.8px;color:var(--muted);margin-bottom:7px}
+.kiosk-progress-copy b{color:var(--gold);font-family:var(--mono)}
+.kiosk-progress{height:9px;background:#080d18;border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.kiosk-progress i{display:block;width:0%;height:100%;background:linear-gradient(90deg,var(--violet),var(--gold),var(--up));border-radius:99px;transition:width .35s ease}
+.action-opt{appearance:none;font-family:var(--body);color:var(--txt)}
+.action-opt.sel{background:rgba(43,217,143,.14);border-color:var(--up);color:var(--up)}
+.kiosk-feedback{font-size:12.5px;color:var(--muted);margin-top:7px}
+.kiosk-feedback.ok{color:var(--up)}
+.kiosk-feedback.err{color:var(--down)}
+.task.kiosk-focus{animation:kioskPulse 1.2s ease}
+@keyframes kioskPulse{0%,100%{box-shadow:none}35%{box-shadow:0 0 0 3px rgba(242,180,65,.25)}}
+@media(max-width:760px){.q4-choice-grid,.kiosk-setup{grid-template-columns:1fr}.kiosk-example,.kiosk-progress-copy{align-items:flex-start;flex-direction:column}.q4-news-option{padding:11px}}
+</style>
+<style>
+/* ================================================================
+   ENHANCE-UI · Capa de dinamismo visual (V5)
+   Solo estética/interacción — no toca styles.css ni la lógica JS.
+   Pensado para cargarse DESPUÉS de styles.css.
+   ================================================================ */
+
+/* ---------- Base: scrollbar, selección, foco ---------- */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+::selection{background:var(--gold);color:#241703}
+
+/* Brillo ambiental que respira muy lento detrás del contenido */
+body::after{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(560px 560px at 12% 15%, rgba(124,108,240,.09), transparent 60%),
+    radial-gradient(620px 620px at 88% 85%, rgba(242,180,65,.07), transparent 60%);
+  animation:ambientDrift 24s ease-in-out infinite;
+}
+@keyframes ambientDrift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-3%,3%) scale(1.05)}}
+
+/* ---------- LA MONEDITA: giro tipo moneda real ---------- */
+.brand .coin{
+  position:relative;
+  overflow:hidden;
+  animation:coinFlip 2.6s cubic-bezier(.45,.05,.55,.95) infinite;
+  box-shadow:0 0 18px rgba(242,180,65,.4),0 4px 14px rgba(0,0,0,.35);
+  transition:box-shadow .3s;
+  will-change:transform;
+}
+.brand .coin::after{
+  content:"";position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.7) 48%,rgba(255,255,255,.15) 54%,transparent 70%);
+  background-size:240% 240%;background-position:130% 130%;
+  animation:coinShine 2.6s ease infinite;mix-blend-mode:overlay;
+}
+@keyframes coinFlip{
+  0%,100%{transform:scaleX(1) rotate(0deg)}
+  20%{transform:scaleX(1) rotate(-5deg)}
+  50%{transform:scaleX(.08) rotate(0deg)}
+  80%{transform:scaleX(1) rotate(5deg)}
+}
+@keyframes coinShine{0%{background-position:130% 130%}50%{background-position:-40% -40%}100%{background-position:130% 130%}}
+.brand:hover .coin{animation-duration:.7s;box-shadow:0 0 30px rgba(242,180,65,.75),0 4px 18px rgba(0,0,0,.4)}
+/* Guiño: los íconos de moneda de la tabla de mercado también "giran" al pasar el mouse por su fila */
+.coinname .ic{transition:box-shadow .25s}
+.mkt tr:hover .coinname .ic{animation:coinFlip 1s ease}
+
+/* ---------- Botones: relieve "presionable" tipo juego + brillo al pasar el mouse ---------- */
+/* Estático por defecto (nada se mueve solo) — solo reacciona al hover/click, para que sea
+   llamativo sin resultar invasivo. */
+.btn{
+  position:relative;overflow:hidden;isolation:isolate;
+  box-shadow:0 2px 0 rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.05) inset,0 8px 18px rgba(0,0,0,.18);
+  transition:transform .12s ease,box-shadow .12s ease,border-color .18s ease,filter .18s ease;
+}
+.btn::before{
+  content:"";position:absolute;top:0;left:-60%;width:35%;height:100%;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.4),transparent);
+  transform:skewX(-20deg);transition:left .5s ease;z-index:1;pointer-events:none;
+}
+.btn:hover::before{left:130%}
+.btn:hover{box-shadow:0 3px 0 rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.05) inset,0 10px 22px rgba(0,0,0,.28)}
+.btn:active{transform:translateY(2px) scale(.98);box-shadow:0 0 0 rgba(0,0,0,0),0 1px 0 rgba(255,255,255,.05) inset}
+
+.btn.gold{
+  background:linear-gradient(160deg,#F8CD75,var(--gold) 55%,#D89A2E);
+  box-shadow:0 3px 0 #8a5b12,0 10px 24px rgba(242,180,65,.28);
+}
+.btn.gold:hover{filter:brightness(1.06);box-shadow:0 3px 0 #8a5b12,0 12px 30px rgba(242,180,65,.42)}
+.btn.gold:active{transform:translateY(2px) scale(.98);box-shadow:0 1px 0 #8a5b12,0 4px 12px rgba(242,180,65,.3)}
+
+.btn.sm{box-shadow:0 2px 0 rgba(0,0,0,.3),0 4px 10px rgba(0,0,0,.16)}
+.btn.sm:active{box-shadow:0 0 0 rgba(0,0,0,0)}
+
+.btn.ghost{box-shadow:none !important;background:transparent}
+.btn.ghost:hover{box-shadow:none !important}
+.btn.ghost:active{box-shadow:none !important}
+
+.btn:disabled{box-shadow:none;transform:none;filter:none}
+
+/* ---------- Tarjetas: más profundidad y una elevación suave al pasar el mouse ---------- */
+/* Solo reacciona al hover: nada se mueve solo, para que sea llamativo sin ser invasivo. */
+.card,.acard,.route-card,.decision-card,.q4-analysis{
+  transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+}
+.card{
+  background:linear-gradient(165deg,var(--panel),rgba(8,13,23,.94));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 10px 24px rgba(0,0,0,.16);
+}
+.card:hover{transform:translateY(-3px);border-color:rgba(242,180,65,.32);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 18px 38px rgba(0,0,0,.36)}
+.acard{box-shadow:0 8px 18px rgba(0,0,0,.14)}
+.acard:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(0,0,0,.32)}
+.mission-card .mc-icon{display:inline-block;transition:transform .3s ease}
+.mission-card:hover .mc-icon{transform:scale(1.18) rotate(-6deg)}
+
+/* ---------- Alineación pareja: que ninguna tarjeta quede "más arriba" que otra ---------- */
+/* Todas las tarjetas de una misma cuadrícula ahora ocupan la misma altura de fila y
+   estiran su contenido de forma consistente, sin importar cuánto texto tenga cada una. */
+.grid2,.grid3,.acad,.mission-grid,.decision-list,.route-grid,.strategy-choices,
+.member-grid,.badges,.roles,.q4-choice-grid{
+  align-items:stretch;
+}
+.acard,.decision-card,.route-card,.role,.strategy-choice,.badge{
+  display:flex;flex-direction:column;height:100%;
+}
+.newsitem,.q4-news-option{height:100%}
+.acard .okbtn{margin-top:auto}
+.role{justify-content:center}
+.badge{justify-content:center;align-items:center}
+.strategy-choice{justify-content:flex-start}
+
+/* ---------- Barras de progreso con "brillo" tipo XP bar ---------- */
+.progressline div,.hub-progress div,.kiosk-progress i{position:relative;overflow:hidden}
+.progressline div::after,.hub-progress div::after,.kiosk-progress i::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+  animation:shimmer 1.8s linear infinite;
+}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+/* ---------- Riel de misiones: la activa "respira", la recién completada rebota ---------- */
+.rail button.active{animation:railPulse 2.4s ease infinite}
+@keyframes railPulse{0%,100%{box-shadow:0 0 0 1px var(--gold) inset}50%{box-shadow:0 0 0 1px var(--gold) inset,0 0 14px rgba(242,180,65,.4)}}
+.rail button.done .n{animation:doneBounce .45s ease}
+@keyframes doneBounce{0%{transform:scale(.55)}65%{transform:scale(1.25)}100%{transform:scale(1)}}
+
+/* ---------- Celebración al completar tareas / conceptos / misiones ---------- */
+.task.ok,.acard.learned,.mission-card.done,.badge.won{animation:completePulse .6s ease}
+@keyframes completePulse{
+  0%{box-shadow:0 0 0 0 rgba(43,217,143,.55)}
+  70%{box-shadow:0 0 0 16px rgba(43,217,143,0)}
+  100%{box-shadow:0 0 0 0 rgba(43,217,143,0)}
+}
+.badge.won{animation:badgePop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes badgePop{0%{transform:scale(.7);opacity:.5}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+
+/* ---------- Opciones / roles / chips: más táctiles ---------- */
+.opt,.role,.strategy-choice,.q4-news-option,.newsitem,.wizard-step{transition:.18s,transform .18s ease}
+.opt:hover,.role:hover,.strategy-choice:hover,.newsitem:hover{transform:translateY(-2px)}
+.opt.sel,.role.sel,.strategy-choice.sel,.newsitem.sel{animation:selectPop .22s ease}
+@keyframes selectPop{0%{transform:scale(.93)}100%{transform:scale(1)}}
+
+/* ---------- Toast y modal: entradas con rebote ---------- */
+.toast.show{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.modal{animation:modalIn .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes modalIn{0%{transform:scale(.93) translateY(10px);opacity:0}100%{transform:scale(1) translateY(0);opacity:1}}
+
+/* ---------- Botón flotante del coach: brillo pulsante ---------- */
+.coach-fab{animation:fabGlow 2.6s ease-in-out infinite}
+@keyframes fabGlow{0%,100%{box-shadow:0 12px 35px rgba(0,0,0,.42)}50%{box-shadow:0 12px 46px rgba(98,229,194,.4)}}
+
+/* ---------- Accesibilidad: respeta "reducir movimiento" ---------- */
+@media (prefers-reduced-motion:reduce){
+  .brand .coin,.brand .coin::after,.mkt tr:hover .coinname .ic,
+  body::after,.progressline div::after,.hub-progress div::after,.kiosk-progress i::after,
+  .rail button.active,.rail button.done .n,.task.ok,.acard.learned,.mission-card.done,
+  .badge.won,.opt.sel,.role.sel,.strategy-choice.sel,.newsitem.sel,.coach-fab,.modal{
+    animation:none !important;
+  }
+}
+
+/* ---------- Texto: colores con más carácter + brillo en palabras clave ---------- */
+/* Se mantiene la paleta original (dorado/verde/rojo/violeta); solo se le da más "peso"
+   a lo que ya era importante, con un resplandor sutil — no se pinta todo, solo lo clave. */
+
+/* Títulos de misión: un aire dorado tenue detrás del texto */
+h2.title{text-shadow:0 0 26px rgba(242,180,65,.16)}
+.kicker{text-shadow:0 0 12px rgba(242,180,65,.45);letter-spacing:2.8px}
+
+/* La palabra protagonista del hero (ej. "USD 100 000") */
+.hero h2 .g{color:#FFD98C;text-shadow:0 0 18px rgba(242,180,65,.6),0 0 44px rgba(242,180,65,.28)}
+.capital{text-shadow:0 0 36px rgba(43,217,143,.45),0 0 70px rgba(43,217,143,.18)}
+
+/* Términos del glosario: brillan un poco para invitar al clic */
+.term{text-shadow:0 0 8px rgba(242,180,65,.3);transition:color .2s,text-shadow .2s}
+.term:hover{color:#FFD98C;text-shadow:0 0 16px rgba(242,180,65,.65)}
+
+/* Subidas y bajadas de precio: neón sutil, estilo terminal de trading */
+.up{text-shadow:0 0 9px rgba(43,217,143,.45)}
+.down{text-shadow:0 0 9px rgba(255,90,110,.45)}
+
+/* Cifras y etiquetas destacadas (XP, nivel, capitalización, conceptos clave) */
+.pill b{text-shadow:0 0 8px rgba(242,180,65,.4)}
+.pill.level b{text-shadow:0 0 8px rgba(124,108,240,.5)}
+.concept b{text-shadow:0 0 8px rgba(242,180,65,.35)}
+.tmap td b{text-shadow:0 0 6px rgba(242,180,65,.3)}
+.donut-center b{text-shadow:0 0 14px rgba(242,180,65,.4)}
+.decision-title b{color:var(--txt)}
+
+/* Marca del encabezado */
+.brand h1{text-shadow:0 0 14px rgba(242,180,65,.16)}
+</style>
 <style>
 .buy-modal{max-width:420px}
 .order-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
@@ -853,10 +1448,1403 @@
 </footer>
 
 
-<script src="script1-core.js"></script>
-<script src="script2-flexible.js"></script>
-<script src="script3-friendly.js"></script>
-<script id="v4-task-fixes" src="script4-fixes.js"></script>
+<script>
+/* ================= ESTADO ================= */
+const CAPITAL = 100000;
+let S = {
+  screen:0, name:'', role:'', xp:0,
+  acad:[false,false,false,false],
+  m:[false,false,false,false,false],
+  q1:[], q1ok:false, q2ok:false, q3ok:false, newsSel:-1,
+  picks:[], just:{},
+  alloc:{}, reserve:15, risk:'', trust:'', trustWhy:'', stopG:0,
+  buys:{},
+  day:0, plHist:[CAPITAL], log:[],
+  kiosk:[false,false,false], kioskAmt:'', kioskDoc:'',
+  answers:{}, reflex:'', bonus:''
+};
+
+/* ================= MERCADO ================= */
+/* Precios base tomados de datos reales de CoinMarketCap (julio 2026) */
+const COINS = [
+ {sym:'BTC', name:'Bitcoin',   p:63400,  c24:1.3,  c7:3.4,  cap:1270e9, vol:1, col:'#F7931A', about:'La primera criptomoneda; el "oro digital" del mercado.'},
+ {sym:'ETH', name:'Ethereum',  p:1790,   c24:0.8,  c7:2.1,  cap:216e9,  vol:2, col:'#8A92B2', about:'Red de contratos inteligentes; base de las finanzas descentralizadas.'},
+ {sym:'USDT',name:'Tether',    p:1.00,   c24:0.0,  c7:0.0,  cap:184e9,  vol:0, col:'#26A17B', about:'Moneda estable anclada al dólar: mínima volatilidad, tu refugio.'},
+ {sym:'BNB', name:'BNB',       p:570,    c24:0.3,  c7:1.5,  cap:76.8e9, vol:2, col:'#F0B90B', about:'Token del ecosistema del mayor exchange del mundo.'},
+ {sym:'XRP', name:'XRP',       p:1.07,   c24:-0.8, c7:2.9,  cap:66.7e9, vol:2, col:'#00AAE4', about:'Enfocada en pagos y transferencias internacionales rápidas.'},
+ {sym:'SOL', name:'Solana',    p:75.1,   c24:-1.4, c7:5.0,  cap:43.7e9, vol:2, col:'#9945FF', about:'Blockchain de alta velocidad con creciente interés institucional.'},
+ {sym:'DOGE',name:'Dogecoin',  p:0.0721, c24:1.3,  c7:-2.5, cap:10.8e9, vol:3, col:'#C2A633', about:'Nació como meme; extremadamente sensible al ánimo del mercado.'},
+ {sym:'ZEC', name:'Zcash',     p:506,    c24:1.4,  c7:12.4, cap:8.3e9,  vol:3, col:'#F4B728', about:'Enfocada en privacidad; protagonista de fuertes subidas recientes.'},
+ {sym:'ADA', name:'Cardano',   p:0.159,  c24:1.1,  c7:-0.8, cap:5.7e9,  vol:2, col:'#0033AD', about:'Plataforma académica de contratos inteligentes.'},
+ {sym:'LINK',name:'Chainlink', p:7.93,   c24:0.6,  c7:1.8,  cap:5.2e9,  vol:2, col:'#2A5ADA', about:'Conecta blockchains con datos del mundo real (oráculos).'}
+];
+COINS.forEach(c=>{c.p0=c.p; c.hist=Array.from({length:30},()=>c.p*(1+(Math.random()-.5)*.008*(c.vol||0.3)));c.hist.push(c.p);});
+
+const VOLTXT = ['Estable','Baja','Media','Muy alta'];
+const VOLCLS = ['v1','v1','v2','v3'];
+const gauss = ()=> (Math.random()+Math.random()+Math.random()-1.5)/1.5;
+
+function fmt(n,dec){ if(dec===undefined) dec = n>=1000?0:(n>=1?2:4);
+  return n.toLocaleString('es-BO',{minimumFractionDigits:dec,maximumFractionDigits:dec}); }
+function fmtUsd(n){ return '$ '+fmt(n,2); }
+function fmtCap(n){ return n>=1e12 ? '$ '+(n/1e12).toFixed(2)+' B (billones)' : '$ '+(n/1e9).toFixed(1)+' MM'; }
+
+function tickMarket(){
+  COINS.forEach(c=>{
+    const drift = c.c7/700, v = [0.0004,0.0035,0.007,0.016][c.vol];
+    const old = c.p;
+    c.p = Math.max(c.p*(1+drift+gauss()*v), c.p0*0.4);
+    c.hist.push(c.p); if(c.hist.length>40)c.hist.shift();
+    c.last = c.p>=old?1:-1;
+    c.c24 = c.c24 + gauss()*0.12*(c.vol||0.2);
+  });
+  renderMarket(); renderTicker();
+}
+
+function sparkline(c){
+  const h=c.hist, min=Math.min(...h), max=Math.max(...h), rg=(max-min)||1;
+  const pts=h.map((v,i)=>`${(i/(h.length-1))*90},${24-((v-min)/rg)*20+1}`).join(' ');
+  const up = h[h.length-1]>=h[0];
+  return `<svg class="spark" viewBox="0 0 90 26"><polyline points="${pts}" fill="none" stroke="${up?'#2BD98F':'#FF5A6E'}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+}
+
+function renderMarket(){
+  const tb=document.getElementById('mktBody'); if(!tb)return;
+  tb.innerHTML = COINS.map(c=>`
+   <tr>
+    <td><div class="coinname"><div class="ic" style="background:${c.col}22;color:${c.col};border:1px solid ${c.col}55">${c.sym.slice(0,3)}</div>
+      <div><b>${c.name}</b><small>${c.sym} · ${c.about}</small></div></div></td>
+    <td class="${c.last>0?'flash-up':'flash-down'}">${fmt(c.p)}</td>
+    <td class="${c.c24>=0?'up':'down'}">${c.c24>=0?'▲':'▼'} ${Math.abs(c.c24).toFixed(2)}%</td>
+    <td class="${c.c7>=0?'up':'down'}">${c.c7>=0?'▲':'▼'} ${Math.abs(c.c7).toFixed(1)}%</td>
+    <td>${fmtCap(c.cap)}</td>
+    <td style="text-align:right"><span class="volb ${VOLCLS[c.vol]}">${VOLTXT[c.vol]}</span></td>
+    <td>${sparkline(c)}</td>
+   </tr>`).join('');
+}
+
+function renderTicker(){
+  const t=document.getElementById('ticker');
+  t.innerHTML = COINS.map(c=>{
+    const up=c.c24>=0;
+    return `<span class="tk-item"><span class="tk-sym" style="background:${c.col}22;color:${c.col};border:1px solid ${c.col}55">${c.sym}</span> <span class="tk-price">${fmt(c.p)}</span> <span class="tk-badge ${up?'tk-badge-up':'tk-badge-down'}">${up?'▲':'▼'}${Math.abs(c.c24).toFixed(2)}%</span></span>`;
+  }).join('') + `<span class="tk-brand" style="color:var(--gold)">● CRYPTO CHALLENGE FCEE · CAPITAL VIRTUAL USD 100 000 ●</span>`;
+}
+setInterval(tickMarket, 3000);
+/* Autoguardado de respaldo cada 20 s + al cerrar la pestaña */
+setInterval(()=>{ if(hasProgress()) save(); }, 20000);
+window.addEventListener('beforeunload', ()=>{ try{ if(!window.__resetting && hasProgress()) localStorage.setItem('ccfcee_amigable_v4', JSON.stringify(S)); }catch(e){} });
+
+/* ================= NOTICIAS ================= */
+const NEWS = [
+ {t:'pos', h:'Fondos institucionales aumentan posiciones en Bitcoin vía ETF', s:'Los flujos hacia ETF al contado marcan su mejor semana del trimestre, reforzando la demanda de BTC.', why:'💭 Cómo leerla: más demanda institucional suele sostener el precio de BTC — un punto a favor de los activos de gran capitalización.'},
+ {t:'pos', h:'Grandes tesorerías corporativas comienzan a acumular Solana', s:'Empresas listadas en bolsa replican con SOL la estrategia de reservas que popularizó Bitcoin.', why:'💭 Cómo leerla: la adopción corporativa da respaldo a SOL, pero recuerda que sigue siendo más volátil que BTC.'},
+ {t:'neu', h:'La Reserva Federal de EE. UU. insinúa recortes de tasas para fin de año', s:'Tasas más bajas suelen empujar capital hacia activos de riesgo como las criptomonedas.', why:'💭 Cómo leerla: si baja el "premio" por ahorrar en bancos, más inversionistas buscan rendimiento en cripto. Suele favorecer a todo el mercado.'},
+ {t:'neg', h:'Un exchange mediano suspende retiros por fallas de seguridad', s:'El incidente reaviva el debate sobre la custodia de fondos y golpea el sentimiento de corto plazo.', why:'💭 Cómo leerla: las malas noticias de seguridad asustan al mercado entero por unos días — argumento para mantener reserva y stop-loss.'},
+ {t:'neu', h:'Nueva regulación de monedas estables entra en vigor en Europa', s:'Mayor claridad regulatoria para stablecoins como USDT: menos incertidumbre, más supervisión.', why:'💭 Cómo leerla: reglas claras reducen el riesgo de sorpresas regulatorias — refuerza el rol de USDT como refugio.'},
+ {t:'neg', h:'Analistas advierten sobre volatilidad extrema en monedas meme', s:'Tokens como DOGE registran oscilaciones diarias de dos dígitos sin fundamentos que las respalden.', why:'💭 Cómo leerla: si vas a incluir DOGE, que sea con un porcentaje pequeño y un stop-loss firme. Volatilidad extrema exige límites estrictos.'}
+];
+
+/* ================= GLOSARIO ================= */
+const GLOSS = [
+ ['Criptoactivo','Activo digital que usa criptografía y funciona sin un banco central (ej.: Bitcoin).','Como dinero que viaja por internet sin pasar por ningún banco.'],
+ ['Capitalización de mercado','Precio del activo × unidades en circulación. Mide el "tamaño" y solidez relativa del activo.','Bitcoin es la exportadora gigante del mercado; una moneda nueva es un puesto de feria que recién abre.'],
+ ['Volatilidad','Qué tanto sube y baja un precio en poco tiempo. Más volatilidad = más riesgo (y más oportunidad).','USDT es una carretera plana; DOGE es el camino a Los Yungas.'],
+ ['Tendencia','Dirección general del precio en un período: alcista (sube), bajista (baja) o lateral (se mantiene).','La variación de 7 días te dice hacia dónde "camina" el activo esta semana.'],
+ ['Portafolio','Conjunto de inversiones que posees. Aquí: tus 3 criptomonedas + tu reserva.','Tu canasta completa de inversiones, vista como un todo.'],
+ ['Diversificación','Repartir el capital entre varios activos para que la caída de uno no hunda todo el portafolio.','No pongas todos los huevos en la misma canasta.'],
+ ['Moneda estable (stablecoin)','Criptomoneda anclada al dólar (ej.: USDT). Casi no varía: sirve como refugio.','Es como guardar dólares digitales dentro del mundo cripto.'],
+ ['Take-profit','Precio objetivo al que vendes automáticamente para asegurar la ganancia antes de que el mercado cambie.','Compras a $100, fijas +15%: al llegar a $115 el sistema vende solo y tu ganancia queda asegurada.'],
+ ['Stop-loss','Precio límite al que vendes automáticamente para frenar una pérdida. Tu "freno de mano".','Compras a $100, fijas −10%: si cae a $90 el sistema vende solo y proteges el resto de tu capital.'],
+ ['Reserva / liquidez','Capital que no inviertes y mantienes en caja para reaccionar ante oportunidades o crisis.','El "colchón" de la empresa: si el mercado se pone en descuento, tienes con qué comprar.'],
+ ['Runway','Tiempo que una empresa puede operar con la caja disponible. Proteger el runway = proteger la vida de la empresa.','Si tu caja cubre 6 meses de gastos, tu runway es de 6 meses.'],
+ ['Costo de oportunidad','Lo que dejas de ganar por elegir una alternativa en lugar de otra.','Si inviertes el 100% de inmediato, tu costo de oportunidad es no poder comprar barato si el mercado cae mañana.'],
+ ['Perfil de riesgo','Tu tolerancia a las pérdidas: conservador, moderado o agresivo. Define cómo distribuyes el capital.','¿Cuánto puedes perder sin perder el sueño? Esa es tu verdadera medida.'],
+ ['Orden de compra','Instrucción de comprar un activo a precio de mercado. Registra precio, monto y unidades recibidas.','Unidades = monto invertido ÷ precio. $10 000 en algo que vale $50 = 200 unidades.']
+];
+
+/* ================= PERSISTENCIA ================= */
+let mem={};
+let saveFlashT;
+function save(){
+  S.savedAt = Date.now();
+  try{ localStorage.setItem('ccfcee_amigable_v4', JSON.stringify(S)); }catch(e){ mem.s=JSON.stringify(S); }
+  const chip=document.getElementById('saveChip'), txt=document.getElementById('saveTxt');
+  if(chip&&txt){ const t=new Date(S.savedAt);
+    txt.textContent='Guardado '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+':'+String(t.getSeconds()).padStart(2,'0');
+    chip.classList.add('flash'); clearTimeout(saveFlashT);
+    saveFlashT=setTimeout(()=>chip.classList.remove('flash'),900); }
+}
+function load(){ try{ const d=localStorage.getItem('ccfcee_amigable_v4'); if(d){ S=Object.assign(S,JSON.parse(d)); return true; } }catch(e){ if(mem.s){ S=Object.assign(S,JSON.parse(mem.s)); return true; } } return false; }
+function hasProgress(){ return !!(S.name || S.xp>0 || S.acad.some(Boolean)); }
+function resumeSession(){
+  document.getElementById('resumeBk').classList.remove('on');
+  toast(`👋 ¡Bienvenido de vuelta${S.name?', <b>'+S.name+'</b>':''}! Continúas en ${S.screen===0?'la historia':S.screen===6?'los resultados':'la Misión '+S.screen}.`);
+}
+function freshStart(){
+  window.__resetting = true;
+  try{ localStorage.removeItem('ccfcee_amigable_v4'); }catch(e){}
+  mem={}; location.reload();
+}
+function resetAll(){
+  if(!confirm('Esto borrará todo el avance del reto guardado en este navegador. ¿Reiniciar?'))return;
+  freshStart();
+}
+function setTeamPill(){
+  if(S.name){ document.getElementById('teamPill').style.display='flex';
+    document.getElementById('teamName').textContent=S.name; }
+}
+
+/* ================= NAVEGACIÓN Y GAMIFICACIÓN ================= */
+const MISSIONS=[
+ {n:'Historia', icon:'🏢'},
+ {n:'Explora el mercado', icon:'🔍', min:15},
+ {n:'Diseña tu estrategia', icon:'📐', min:15},
+ {n:'Ejecuta inversiones', icon:'⚡', min:15},
+ {n:'Kiosco Bitcoin', icon:'₿', min:5},
+ {n:'Explica tu decisión', icon:'🎤', min:10},
+ {n:'Resultados', icon:'🏆'}
+];
+function renderRail(){
+  const r=document.getElementById('rail');
+  r.innerHTML = MISSIONS.map((m,i)=>{
+    const done = i>0 && i<6 && S.m[i-1];
+    const unlocked = i===0 || i===1 && S.name || (i>1 && i<6 && S.m[i-2]) || (i===6 && S.m[4]);
+    return `<button class="${S.screen===i?'active':''} ${done?'done':''} ${unlocked?'':'locked'}" onclick="${unlocked?`go(${i})`:''}" ${unlocked?'':'disabled'}>
+      <span class="n">${done?'✓':(i===0?'★':(i===6?'🏆':i))}</span>${m.icon} ${m.n}</button>`;
+  }).join('');
+  const prog = (S.m.filter(Boolean).length/5)*100;
+  document.getElementById('progFill').style.width = prog+'%';
+}
+function go(i){ S.screen=i; document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s'+i).classList.add('on'); renderRail(); startTimer(i); save();
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(i===3) renderBuyRows(); if(i===6) renderFinal();
+}
+function addXp(n,msg){ S.xp+=n; document.getElementById('xp').textContent=S.xp; updateLevel();
+  toast(`+${n} XP ${msg?'· '+msg:''}`); save(); }
+function updateLevel(){
+  const L = S.xp>=700?'Director de Inversiones': S.xp>=480?'Estratega Senior': S.xp>=240?'Analista Senior':'Analista Junior';
+  document.getElementById('level').textContent=L; return L;
+}
+let toastT;
+function toast(msg){ const t=document.getElementById('toast'); t.innerHTML=msg; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),3200); }
+
+/* ================= TEMPORIZADOR ================= */
+let timerInt=null, timerLeft=0;
+function startTimer(scr){
+  const pill=document.getElementById('timerPill');
+  clearInterval(timerInt); timerInt=null;
+  if(scr>=1&&scr<=5){ pill.style.display='flex'; timerLeft=MISSIONS[scr].min*60; drawTimer();
+    document.getElementById('timerBtn').textContent='▶';
+  } else pill.style.display='none';
+}
+function drawTimer(){ const m=Math.floor(timerLeft/60),s=timerLeft%60;
+  document.getElementById('timerTxt').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }
+document.getElementById('timerBtn').onclick=function(){
+  if(timerInt){ clearInterval(timerInt); timerInt=null; this.textContent='▶'; }
+  else{ this.textContent='⏸'; timerInt=setInterval(()=>{ if(timerLeft>0){timerLeft--;drawTimer();}
+      else{clearInterval(timerInt);timerInt=null;toast('⏱ Tiempo sugerido agotado — puedes continuar con calma');} },1000); }
+};
+
+/* ================= HISTORIA + ACADEMIA ================= */
+function storyStep(n){ document.querySelectorAll('.story-step').forEach(s=>s.classList.remove('on'));
+  document.getElementById('st'+n).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'}); }
+function learnCard(i,btn){
+  if(S.acad[i])return;
+  S.acad[i]=true;
+  btn.classList.add('done'); btn.textContent='✓ Dominado';
+  document.getElementById('ac'+i).classList.add('learned');
+  addXp(15,'Concepto dominado');
+  const n=S.acad.filter(Boolean).length;
+  document.getElementById('acadHint').innerHTML=`Conceptos dominados: <b style="color:${n===4?'var(--up)':'var(--gold)'}">${n} / 4</b>${n===4?' — ¡idioma del mercado desbloqueado! 🎓':' — marca los cuatro para continuar.'}`;
+  if(n===4) document.getElementById('acadNext').disabled=false;
+  save();
+}
+document.querySelectorAll('#roleSel .role').forEach(r=>r.onclick=()=>{
+  document.querySelectorAll('#roleSel .role').forEach(x=>x.classList.remove('sel'));
+  r.classList.add('sel'); S.role=r.dataset.r;
+});
+function startChallenge(){
+  const n=document.getElementById('inpName').value.trim();
+  if(!n){ toast('✋ Escribe el nombre del o los analistas'); return; }
+  if(!S.role){ toast('✋ Selecciona la carrera responsable'); return; }
+  S.name=n; setTeamPill(); addXp(30,'Desafío aceptado'); go(1);
+}
+
+/* ================= MISIÓN 1 ================= */
+function buildM1(){
+  const q1=document.getElementById('q1opts');
+  q1.innerHTML = COINS.map(c=>`<div class="opt" data-s="${c.sym}" onclick="q1pick(this)">${c.sym} · ${c.name}</div>`).join('');
+  const mk=(el,fn)=>{ document.getElementById(el).innerHTML =
+    COINS.filter(c=>['BTC','ETH','SOL','ZEC','DOGE','XRP'].includes(c.sym))
+      .map(c=>`<div class="opt" data-s="${c.sym}" onclick="${fn}(this)">${c.sym} · ${c.name}</div>`).join(''); };
+  mk('q2opts','q2pick'); mk('q3opts','q3pick');
+  document.getElementById('newsList').innerHTML = NEWS.map((n,i)=>`
+    <div class="newsitem" data-i="${i}" onclick="newsPick(${i},this)">
+      <span class="tag t-${n.t}">${n.t==='pos'?'Alcista':n.t==='neg'?'Bajista':'Neutro'}</span>
+      <div><b>${n.h}</b><span>${n.s}</span><div class="why">${n.why}</div></div></div>`).join('');
+  document.getElementById('q5opts').innerHTML = COINS.map(c=>`<div class="opt" data-s="${c.sym}" onclick="q5pick(this)">${c.sym} · ${c.name}</div>`).join('');
+}
+function setTask(id,ok){ const t=document.getElementById(id); t.classList.toggle('ok',ok);
+  t.querySelector('.st').textContent = ok?'✓ completada':'pendiente'; }
+
+function q1pick(el){
+  el.classList.toggle('sel');
+  S.q1=[...document.querySelectorAll('#q1opts .opt.sel')].map(o=>o.dataset.s);
+  const h=document.getElementById('q1hint');
+  if(S.q1.length!==3){ h.className='hint'; h.textContent=`Seleccionadas: ${S.q1.length}/3`; S.q1ok=false; setTask('t1',false); save(); return; }
+  const target=['BTC','ETH','USDT'];
+  S.q1ok = target.every(s=>S.q1.includes(s));
+  if(S.q1ok){ h.className='hint ok'; h.innerHTML='✓ <b>Correcto:</b> Bitcoin ($1,27 billones), Ethereum ($216 MM) y Tether ($184 MM) dominan por capitalización. Dato curioso: Tether es una moneda ESTABLE — su tamaño refleja cuánta gente la usa como refugio. Verifícalo también en CoinMarketCap.'; setTask('t1',true); addXp(20,'Ojo de analista'); }
+  else{ h.className='hint err'; h.textContent='Casi… revisa la columna "Cap. de mercado": recuerda que 1 B (billón) es MIL veces más grande que 1 MM (mil millones). Ordena de mayor a menor.'; setTask('t1',false); }
+  save();
+}
+function q2pick(el){
+  [...document.querySelectorAll('#q2opts .opt')].forEach(o=>o.classList.remove('sel','right','wrong'));
+  const ok = el.dataset.s==='ZEC'; el.classList.add(ok?'right':'wrong');
+  const h=document.getElementById('q2hint');
+  if(ok){ S.q2ok=true; h.className='hint ok'; h.innerHTML='✓ <b>Exacto:</b> Zcash lidera la variación a 7 días (+12,4%). Lección de analista: una subida rápida atrae compradores… pero también puede revertirse rápido. Antes de subirte a un cohete, pregunta cuánto combustible le queda.'; setTask('t2',true); addXp(20,'Cazador de tendencias'); }
+  else{ h.className='hint err'; h.textContent='Compara la columna "7 d": busca el porcentaje positivo (▲ verde) más alto de toda la tabla, no el precio más alto.'; }
+  save();
+}
+function q3pick(el){
+  [...document.querySelectorAll('#q3opts .opt')].forEach(o=>o.classList.remove('sel','right','wrong'));
+  const ok = el.dataset.s==='DOGE'; el.classList.add(ok?'right':'wrong');
+  const h=document.getElementById('q3hint');
+  if(ok){ S.q3ok=true; h.className='hint ok'; h.innerHTML='✓ <b>Correcto:</b> Dogecoin muestra volatilidad "Muy alta": puede moverse ±10% en un solo día. Eso significa que $10 000 invertidos hoy podrían valer $11 000… o $9 000 mañana. No es "malo": es RIESGO, y el riesgo se gestiona con porcentajes pequeños y stop-loss.'; setTask('t3',true); addXp(20,'Detector de riesgo'); }
+  else{ h.className='hint err'; h.textContent='Observa la columna "Volatilidad": busca la etiqueta roja "Muy alta". El precio no importa aquí — importa qué tan bruscamente se mueve.'; }
+  save();
+}
+function newsPick(i,el){
+  document.querySelectorAll('.newsitem').forEach(n=>n.classList.remove('sel'));
+  el.classList.add('sel'); S.newsSel=i;
+  document.getElementById('q4hint').innerHTML=`<span style="color:var(--up)">✓ Noticia elegida:</span> "${NEWS[i].h}". En la Misión 2 podrás usarla como argumento para justificar tu activo de mayor confianza.`;
+  setTask('t4',true); save();
+}
+function q5pick(el){
+  const s=el.dataset.s;
+  if(el.classList.contains('sel')){ el.classList.remove('sel'); S.picks=S.picks.filter(x=>x!==s); }
+  else{ if(S.picks.length>=3){ toast('Solo 3 criptomonedas: quita una para cambiar'); return; }
+    el.classList.add('sel'); S.picks.push(s); }
+  renderQ5just(); save();
+}
+function renderQ5just(){
+  const d=document.getElementById('q5just');
+  d.innerHTML = S.picks.map(s=>{ const c=COINS.find(x=>x.sym===s);
+    return `<label class="f">¿Por qué ${c.name} (${s}) merece un lugar en el portafolio?</label>
+    <textarea data-s="${s}" oninput="S.just['${s}']=this.value;save();checkT5()" placeholder="Elijo ${c.name} porque… (usa un dato de la tabla: su capitalización de ${fmtCap(c.cap)}, su variación 7d, su volatilidad ${VOLTXT[c.vol].toLowerCase()}, o una noticia)">${S.just[s]||''}</textarea>`;
+  }).join('');
+  checkT5();
+}
+function checkT5(){
+  const ok = S.picks.length===3 && S.picks.every(s=>(S.just[s]||'').trim().length>=4);
+  setTask('t5',ok); return ok;
+}
+function completeM1(){
+  const missing=[];
+  if(!S.q1ok) missing.push('Tarea 1 (top 3 por capitalización)');
+  if(!S.q2ok) missing.push('Tarea 2 (mayor subida 7d)');
+  if(!S.q3ok) missing.push('Tarea 3 (mayor volatilidad)');
+  if(S.newsSel<0) missing.push('Tarea 4 (elegir una noticia)');
+  if(!checkT5()) missing.push('Tarea 5 (3 monedas + justificación de al menos una frase)');
+  if(missing.length){ toast('✋ Falta: '+missing[0]); return; }
+  if(!S.m[0]){ S.m[0]=true; addXp(100,'Misión 1 completada'); }
+  buildM2(); go(2);
+}
+
+/* ================= MISIÓN 2 ================= */
+function buildM2(){
+  const rows=document.getElementById('allocRows');
+  rows.innerHTML = S.picks.map(s=>{ const c=COINS.find(x=>x.sym===s); if(S.alloc[s]===undefined)S.alloc[s]=28;
+    return `<div class="alloc"><div class="row">
+      <div class="nm"><div class="ic" style="width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;background:${c.col}22;color:${c.col};border:1px solid ${c.col}55">${s.slice(0,3)}</div> ${c.name}</div>
+      <input type="range" min="0" max="80" value="${S.alloc[s]}" data-s="${s}" oninput="S.alloc['${s}']=+this.value;allocChanged()">
+      <div class="pct"><span id="pct_${s}">${S.alloc[s]}%</span><small id="usd_${s}"></small></div>
+    </div></div>`; }).join('');
+  const t=document.getElementById('trustSel');
+  t.innerHTML='<option value="">— Selecciona —</option>'+S.picks.map(s=>{const c=COINS.find(x=>x.sym===s);return `<option ${S.trust===s?'selected':''} value="${s}">${c.name} (${s})</option>`;}).join('');
+  t.onchange=()=>{S.trust=t.value;save();};
+  document.getElementById('trustWhy').value=S.trustWhy||'';
+  document.getElementById('trustWhy').oninput=e=>{S.trustWhy=e.target.value;save();};
+  document.querySelectorAll('#slOpts .opt').forEach(o=>{ o.classList.toggle('sel',+o.dataset.v===S.stopG);
+    o.onclick=()=>{ document.querySelectorAll('#slOpts .opt').forEach(x=>x.classList.remove('sel'));
+      o.classList.add('sel'); S.stopG=+o.dataset.v; slCalc(); save(); };});
+  document.querySelectorAll('#riskSel .role').forEach(r=>{ r.classList.toggle('sel',S.risk===r.dataset.r);
+    r.onclick=()=>{ document.querySelectorAll('#riskSel .role').forEach(x=>x.classList.remove('sel'));
+      r.classList.add('sel'); S.risk=r.dataset.r; coherenceCheck(); save(); };});
+  document.getElementById('rgRes').value=S.reserve;
+  slCalc(); allocChanged();
+}
+function slCalc(){
+  const el=document.getElementById('slCalc');
+  if(!S.stopG){ el.textContent='Selecciona un límite y te mostraré en dólares dónde queda tu "freno".'; return; }
+  el.innerHTML=`Con límite de <b>−${S.stopG}%</b>: si tus $100 000 caen a <b style="color:var(--down)">${fmtUsd(CAPITAL*(1-S.stopG/100))}</b>, activas el freno y conservas ese capital para seguir compitiendo.`;
+}
+function coherenceCheck(){
+  const box=document.getElementById('cohereBox'); if(!box)return;
+  const inv=S.picks.reduce((a,s)=>a+(S.alloc[s]||0),0);
+  if(!S.risk||!inv){ box.className='cohere'; box.innerHTML='🧪 <b>Verificador de coherencia:</b> elige tu perfil y mueve los deslizadores; aquí te diré si tu distribución coincide con tu perfil de riesgo.'; return; }
+  const score = S.picks.reduce((a,s)=>{const c=COINS.find(x=>x.sym===s);return a+(S.alloc[s]||0)*c.vol;},0)/inv;
+  const nivel = score<1.1?'baja':score<2.1?'media':'alta';
+  const esperado = {Conservador:'baja',Moderado:'media',Agresivo:'alta'}[S.risk];
+  if(nivel===esperado){ box.className='cohere good';
+    box.innerHTML=`🧪 <b>Coherencia ✓</b> Tu distribución tiene un riesgo <b>${nivel}</b> y tu perfil es <b>${S.risk}</b>: tu estrategia cuenta una historia consistente. Así se presenta un plan ante un comité.`; }
+  else{ box.className='cohere warn';
+    box.innerHTML=`🧪 <b>Atención (no bloquea, solo enseña):</b> declaraste perfil <b>${S.risk}</b>, pero tu distribución tiene un riesgo <b>${nivel}</b> según la volatilidad de tus activos. Puedes: ① ajustar los porcentajes para alinearte, o ② mantenerla y <b>explicar el porqué</b> ante el comité — ambas son decisiones válidas si las argumentas.`; }
+}
+function allocChanged(){
+  S.reserve=+document.getElementById('rgRes').value;
+  let tot=S.reserve;
+  document.getElementById('pctRes').textContent=S.reserve+'%';
+  document.getElementById('usdRes').textContent=fmtUsd(CAPITAL*S.reserve/100);
+  const bar=document.getElementById('totalBar'); let bars='';
+  S.picks.forEach(s=>{ const c=COINS.find(x=>x.sym===s), v=S.alloc[s]||0; tot+=v;
+    const p=document.getElementById('pct_'+s), u=document.getElementById('usd_'+s);
+    if(p){p.textContent=v+'%'; u.textContent=fmtUsd(CAPITAL*v/100);}
+    bars+=`<div style="width:${v}%;background:${c.col}"></div>`; });
+  bars+=`<div style="width:${S.reserve}%;background:var(--muted2)"></div>`;
+  bar.innerHTML=bars;
+  const t=document.getElementById('totalTxt');
+  t.textContent=tot+'%'; t.className= tot===100?'ok':'bad';
+  coherenceCheck();
+  save();
+}
+function completeM2(){
+  const tot=S.picks.reduce((a,s)=>a+(S.alloc[s]||0),0)+S.reserve;
+  if(!S.risk){ toast('✋ Paso 1: selecciona tu perfil de riesgo'); return; }
+  if(tot!==100){ toast(`✋ El total debe ser exactamente 100% (llevas ${tot}%). Ajusta los deslizadores.`); return; }
+  for(const s of S.picks){ const v=S.alloc[s]||0;
+    if(v>60){ toast(`✋ Regla de diversificación: ${s} supera el 60% del capital`); return; }
+    if(v<5){ toast(`✋ Cada moneda elegida necesita al menos 5% (revisa ${s})`); return; } }
+  if(!S.trust){ toast('✋ Paso 4: elige tu activo de mayor confianza'); return; }
+  if((S.trustWhy||'').trim().length<15){ toast('✋ Justifica tu activo de confianza con datos (una frase completa)'); return; }
+  if(!S.stopG){ toast('✋ Paso 5: define tu límite de pérdida'); return; }
+  if(!S.m[1]){ S.m[1]=true; addXp(150,'Estrategia formalizada');
+    if(S.reserve>=10&&S.reserve<=25) addXp(30,'Bonus: liquidez saludable (10–25%)'); }
+  go(3);
+}
+
+/* ================= MISIÓN 3 ================= */
+function targetLinesHtml(price,tp,sl){
+  return `<span class="tp">▲ Vendo con ganancia a ${fmt(price*(1+tp/100))}</span><br><span class="sl">▼ Freno pérdidas a ${fmt(price*(1-sl/100))}</span>`;
+}
+function tgtHtml(s,price){
+  const b=S.buys[s];
+  return targetLinesHtml(price, b?b.tp:15, b?b.sl:(S.stopG||10));
+}
+function renderBuyRows(){
+  const d=document.getElementById('buyRows');
+  d.innerHTML = S.picks.map(s=>{ const c=COINS.find(x=>x.sym===s), b=S.buys[s];
+    const amt = CAPITAL*(S.alloc[s]||0)/100;
+    if(b){
+      return `<div class="buyrow">
+       <div><span class="lab">Activo · asignación</span><div class="coinname"><div class="ic" style="background:${c.col}22;color:${c.col};border:1px solid ${c.col}55">${s.slice(0,3)}</div><div><b>${c.name}</b><small>${S.alloc[s]}% del capital = ${fmtUsd(amt)}</small></div></div></div>
+       <div><span class="lab">Precio de compra ✓</span><div class="val">${fmt(b.price)}</div><div class="tgt">${targetLinesHtml(b.price,b.tp,b.sl)}</div></div>
+       <div><span class="lab">Unidades recibidas</span><div class="val">${fmt(b.units,4)} ${s}</div><small class="hint">Comprobante #${b.orderId||'—'}</small></div>
+       <div style="padding-top:18px"><span class="volb v1">✓ Ejecutada</span></div>
+      </div>`;
+    }
+    return `<div class="buyrow">
+     <div><span class="lab">Activo · asignación</span><div class="coinname"><div class="ic" style="background:${c.col}22;color:${c.col};border:1px solid ${c.col}55">${s.slice(0,3)}</div><div><b>${c.name}</b><small>${S.alloc[s]}% del capital = ${fmtUsd(amt)}</small></div></div></div>
+     <div><span class="lab">Precio actual (en vivo)</span><div class="val" id="live_${s}">${fmt(c.p)}</div></div>
+     <div><span class="lab">Recibirás aprox.</span><div class="val" id="qty_${s}">${fmt(amt/c.p,6)} ${s}</div></div>
+     <div style="padding-top:18px"><button class="btn gold sm" onclick="openBuyModal('${s}')">⚡ Iniciar compra</button></div>
+    </div>`; }).join('');
+  document.getElementById('simCard').style.display = Object.keys(S.buys).length===S.picks.length && S.picks.length? 'block':'none';
+  renderInvTable(); drawChart(); updateDayBtn();
+}
+setInterval(()=>{ S.picks.forEach(s=>{ if(!S.buys[s]){
+  const c=COINS.find(x=>x.sym===s), amt=CAPITAL*(S.alloc[s]||0)/100;
+  const el=document.getElementById('live_'+s); if(el) el.textContent=fmt(c.p);
+  const q=document.getElementById('qty_'+s); if(q) q.textContent=fmt(amt/c.p,6)+' '+s;
+} });},1500);
+
+/* -------- Ticket de compra dinámico (simula un exchange real) -------- */
+let buyModalSym=null, buyModalTP=15, buyModalSL=10, buyModalTicker=null, buyProcessing=false;
+
+function openBuyModal(s){
+  if(buyProcessing) return;
+  buyModalSym=s;
+  const savedTp=Number(localStorage.getItem('ccfcee_lastTp')); const savedSl=Number(localStorage.getItem('ccfcee_lastSl'));
+  buyModalTP = savedTp>0?savedTp:15; buyModalSL = savedSl>0?savedSl:(S.stopG||10);
+  renderBuyModalTicket();
+  document.getElementById('buyModalBk').classList.add('on');
+  clearInterval(buyModalTicker);
+  buyModalTicker=setInterval(()=>{
+    if(!buyModalSym) return;
+    const c=COINS.find(x=>x.sym===buyModalSym);
+    const priceEl=document.getElementById('bmLivePrice'); if(priceEl) priceEl.textContent=fmt(c.p);
+    updateBmQty(); updateBmTargets();
+  },800);
+}
+function closeBuyModal(){
+  if(buyProcessing) return;
+  document.getElementById('buyModalBk').classList.remove('on');
+  clearInterval(buyModalTicker); buyModalSym=null;
+}
+function updateBmQty(){
+  const s=buyModalSym; if(!s) return;
+  const c=COINS.find(x=>x.sym===s), amt=CAPITAL*(S.alloc[s]||0)/100;
+  const el=document.getElementById('bmQty'); if(el) el.textContent=fmt(amt/c.p,6)+' '+s;
+}
+function bmTpChanged(v){ buyModalTP=Math.min(100,Math.max(1,+v||15)); updateBmTargets(); }
+function bmSlChanged(v){ buyModalSL=Math.min(50,Math.max(1,+v||10)); updateBmTargets(); }
+function updateBmTargets(){
+  const s=buyModalSym; if(!s) return;
+  const c=COINS.find(x=>x.sym===s);
+  const el=document.getElementById('bmTgt'); if(el) el.innerHTML=targetLinesHtml(c.p,buyModalTP,buyModalSL);
+}
+function renderBuyModalTicket(){
+  const s=buyModalSym, c=COINS.find(x=>x.sym===s), amt=CAPITAL*(S.alloc[s]||0)/100;
+  document.getElementById('buyModalBody').innerHTML = `
+    <div class="order-head">
+      <div class="coinname"><div class="ic" style="background:${c.col}22;color:${c.col};border:1px solid ${c.col}55">${s.slice(0,3)}</div><div><b>${c.name}</b><small>Orden de mercado · ${s}/USD</small></div></div>
+      <button class="btn sm ghost" type="button" onclick="closeBuyModal()">✕</button>
+    </div>
+    <div class="order-price">
+      <span class="lab">Precio en vivo</span>
+      <div class="order-price-val"><span id="bmLivePrice">${fmt(c.p)}</span><span class="pulse-dot"></span></div>
+    </div>
+    <div class="order-grid">
+      <div><span class="lab">Monto a invertir</span><div class="val">${fmtUsd(amt)}</div><small class="hint">${S.alloc[s]}% del capital, según tu estrategia</small></div>
+      <div><span class="lab">Recibirás aprox.</span><div class="val" id="bmQty">${fmt(amt/c.p,6)} ${s}</div></div>
+    </div>
+    <div class="order-grid">
+      <div><span class="lab">Take-profit % <span class="term" onclick="gotoTerm('Take-profit')" style="font-size:10px">?</span></span><input type="number" id="bmTp" min="1" max="100" value="${buyModalTP}" oninput="bmTpChanged(this.value)"></div>
+      <div><span class="lab">Stop-loss % <span class="term" onclick="gotoTerm('Stop-loss')" style="font-size:10px">?</span></span><input type="number" id="bmSl" min="1" max="50" value="${buyModalSL}" oninput="bmSlChanged(this.value)"></div>
+    </div>
+    <div class="tgt" id="bmTgt">${targetLinesHtml(c.p,buyModalTP,buyModalSL)}</div>
+    <p class="hint" style="margin-top:8px">Al confirmar, el sistema toma el precio <b>exacto</b> del mercado en ese instante — igual que en un exchange real, el precio puede moverse mientras decides.</p>
+    <button class="btn gold" style="width:100%;margin-top:10px" onclick="submitBuyOrder()">⚡ Confirmar compra</button>
+  `;
+}
+function submitBuyOrder(){
+  if(buyProcessing) return;
+  buyProcessing=true;
+  clearInterval(buyModalTicker);
+  const s=buyModalSym, c=COINS.find(x=>x.sym===s);
+  const execPrice=c.p, orderId='ORD-'+Date.now().toString(36).toUpperCase().slice(-6);
+  try{ localStorage.setItem('ccfcee_lastTp',buyModalTP); localStorage.setItem('ccfcee_lastSl',buyModalSL); }catch(e){}
+  const steps=['Enviando orden al exchange…','Verificando fondos y límites…','Buscando el mejor precio disponible…','Ejecutando orden…'];
+  document.getElementById('buyModalBody').innerHTML = `
+    <div class="order-processing">
+      <div class="spinner"></div>
+      <h3>Procesando tu orden</h3>
+      <ul class="proc-steps" id="procSteps">${steps.map((t,i)=>`<li id="pstep${i}"><span class="pstep-dot"></span>${t}</li>`).join('')}</ul>
+    </div>`;
+  steps.forEach((_,i)=>{ setTimeout(()=>{ const li=document.getElementById('pstep'+i); if(li) li.classList.add('done'); }, 320*(i+1)); });
+  setTimeout(()=>finishBuyOrder(s,execPrice,orderId), 320*steps.length+300);
+}
+function finishBuyOrder(s,execPrice,orderId){
+  const amt=CAPITAL*(S.alloc[s]||0)/100;
+  S.buys[s]={price:execPrice, units:amt/execPrice, tp:buyModalTP, sl:buyModalSL, status:'abierta', orderId, ts:Date.now()};
+  addXp(25,`Compra ejecutada: ${fmtUsd(amt)} → ${fmt(amt/execPrice,4)} ${s} a ${fmt(execPrice)} c/u`);
+  save();
+  const t=new Date();
+  document.getElementById('buyModalBody').innerHTML = `
+    <div class="order-done">
+      <div class="order-check">✓</div>
+      <h3>Compra ejecutada</h3>
+      <p class="hint">Comprobante #${orderId} · ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}:${String(t.getSeconds()).padStart(2,'0')}</p>
+      <div class="order-grid">
+        <div><span class="lab">Precio de ejecución</span><div class="val">${fmt(execPrice)}</div></div>
+        <div><span class="lab">Unidades recibidas</span><div class="val">${fmt(amt/execPrice,6)} ${s}</div></div>
+      </div>
+      <div class="tgt">${targetLinesHtml(execPrice,buyModalTP,buyModalSL)}</div>
+      <button class="btn gold" style="width:100%;margin-top:14px" onclick="closeBuyModalAfterOrder()">Continuar</button>
+    </div>`;
+  buyProcessing=false;
+  renderBuyRows();
+  if(Object.keys(S.buys).length===S.picks.length) toast('🎯 Portafolio ejecutado. ¡Ahora avanza los 7 días de mercado y observa qué pasa!');
+}
+function closeBuyModalAfterOrder(){
+  document.getElementById('buyModalBk').classList.remove('on');
+  buyModalSym=null;
+}
+function portfolioValue(){
+  let v = CAPITAL*S.reserve/100;
+  S.picks.forEach(s=>{ const b=S.buys[s]; if(!b)return; const c=COINS.find(x=>x.sym===s);
+    v += b.status==='abierta' ? b.units*c.p : b.closedVal; });
+  return v;
+}
+const DAYEVENTS=[
+ {p:.18,t:'pos',msg:'Noticia alcista: nuevos flujos institucionales impulsan al mercado. (Cuando entra dinero grande, casi todo sube.)',f:1.03},
+ {p:.15,t:'neg',msg:'Corrección del mercado: toma de ganancias generalizada. (Tras varias subidas, muchos venden para asegurar ganancias — los precios bajan.)',f:0.96},
+ {p:.08,t:'neg',msg:'Rumor regulatorio golpea a las monedas más volátiles. (Los activos de mayor riesgo son los primeros en caer ante la incertidumbre.)',f:0.93,volOnly:true},
+ {p:.10,t:'pos',msg:'Rally de altcoins: los activos de mediana capitalización despegan. (A veces el dinero rota de Bitcoin hacia monedas más pequeñas.)',f:1.05,altOnly:true}
+];
+function advanceDay(){
+  if(S.day>=7)return;
+  S.day++;
+  COINS.forEach(c=>{ const v=[0.001,0.012,0.025,0.05][c.vol];
+    c.p=Math.max(c.p*(1+ c.c7/900 + gauss()*v), c.p0*0.4); });
+  let evMsg=null;
+  const r=Math.random(); let acc=0;
+  for(const e of DAYEVENTS){ acc+=e.p; if(r<acc){ evMsg=e;
+      COINS.forEach(c=>{ if(e.volOnly&&c.vol<3)return; if(e.altOnly&&(c.sym==='BTC'||c.sym==='USDT'))return; c.p*=e.f; }); break; } }
+  const notes=[];
+  S.picks.forEach(s=>{ const b=S.buys[s]; if(!b||b.status!=='abierta')return; const c=COINS.find(x=>x.sym===s);
+    const chg=(c.p-b.price)/b.price*100;
+    if(chg>=b.tp){ b.status='take-profit'; b.closedVal=b.units*b.price*(1+b.tp/100);
+      notes.push(`<span class="pos">✓ ${s}: alcanzó su take-profit (+${b.tp}%) y se vendió solo. Ganancia asegurada: así trabaja una orden automática.</span>`); }
+    else if(chg<=-b.sl){ b.status='stop-loss'; b.closedVal=b.units*b.price*(1-b.sl/100);
+      notes.push(`<span class="neg">⛔ ${s}: activó su stop-loss (−${b.sl}%) y se vendió solo. Pérdida controlada — el freno de mano funcionó y protegió el resto de tu capital.</span>`); }
+  });
+  const v=portfolioValue(); S.plHist.push(v);
+  const dchg=((v-S.plHist[S.plHist.length-2])/S.plHist[S.plHist.length-2]*100).toFixed(2);
+  S.log.unshift(`<span class="d">Día ${S.day} ·</span> ${evMsg?`<span class="${evMsg.t}">${evMsg.msg}</span> `:'Jornada tranquila, sin grandes titulares. '}Portafolio: <b>${fmtUsd(v)}</b> (${dchg>=0?'+':''}${dchg}% vs. ayer)${notes.length?'<br>'+notes.join('<br>'):''}`);
+  document.getElementById('evLog').innerHTML=S.log.join('<br>');
+  drawChart(); renderInvTable(); updateDayBtn(); renderMarket();
+  if(S.day===7){ addXp(60,'Sobreviviste 7 días de mercado'); document.getElementById('m3done').disabled=false;
+    toast('📊 Semana completada. Lee tu bitácora, revisa tu tabla de inversiones y cierra la misión.'); }
+  save();
+}
+function updateDayBtn(){
+  const b=document.getElementById('dayBtn');
+  b.textContent = S.day>=7 ? '✓ Semana simulada completa' : `☀️ Avanzar 1 día (${S.day}/7)`;
+  b.disabled = S.day>=7;
+  const v=portfolioValue();
+  document.getElementById('plNow').textContent=fmtUsd(v);
+  const d=((v-CAPITAL)/CAPITAL*100);
+  const el=document.getElementById('plDelta');
+  el.innerHTML=`${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(2)}% desde el inicio (${fmtUsd(Math.abs(v-CAPITAL))} ${d>=0?'ganados':'menos'})`;
+  el.style.color = d>=0?'var(--up)':'var(--down)';
+  document.getElementById('plNow').style.color = d>=0?'var(--up)':'var(--down)';
+  document.getElementById('m3done').disabled = S.day<7;
+}
+function drawChart(){
+  const svg=document.getElementById('plChart'); if(!svg)return;
+  const h=S.plHist, min=Math.min(...h)*0.995, max=Math.max(...h)*1.005, rg=(max-min)||1;
+  const X=i=>40+(i/Math.max(h.length-1,1))*740, Y=v=>210-((v-min)/rg)*180;
+  let grid='';
+  for(let g=0;g<=4;g++){ const yv=min+rg*g/4, y=Y(yv);
+    grid+=`<line x1="40" y1="${y}" x2="780" y2="${y}" stroke="#1E2A44" stroke-width="1"/>
+    <text x="36" y="${y+4}" fill="#5E6A82" font-size="10" text-anchor="end" font-family="monospace">${(yv/1000).toFixed(0)}k</text>`; }
+  const up=h[h.length-1]>=h[0], col=up?'#2BD98F':'#FF5A6E';
+  const pts=h.map((v,i)=>`${X(i)},${Y(v)}`).join(' ');
+  const area=`M ${X(0)},${Y(h[0])} `+h.map((v,i)=>`L ${X(i)},${Y(v)}`).join(' ')+` L ${X(h.length-1)},210 L ${X(0)},210 Z`;
+  svg.innerHTML=`${grid}
+   <path d="${area}" fill="${col}18"/>
+   <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round"/>
+   ${h.map((v,i)=>`<circle cx="${X(i)}" cy="${Y(v)}" r="3.4" fill="${col}"/><text x="${X(i)}" y="226" fill="#5E6A82" font-size="10" text-anchor="middle" font-family="monospace">${i===0?'Inicio':'D'+i}</text>`).join('')}`;
+}
+function renderInvTable(){
+  const card=document.getElementById('invTableCard');
+  if(!Object.keys(S.buys).length){ card.style.display='none'; return; }
+  card.style.display='block';
+  const t=document.getElementById('invTable');
+  t.innerHTML=`<tr><th>Criptoactivo</th><th>% invertido</th><th>Monto USD</th><th>Precio de compra</th><th>Unidades</th><th>TP / SL</th><th>Estado</th><th>Motivo de elección</th></tr>`+
+   S.picks.map(s=>{ const b=S.buys[s]; if(!b)return''; const c=COINS.find(x=>x.sym===s);
+    const st = b.status==='abierta'?`Abierta · ${fmt(c.p)}`: b.status==='take-profit'?'✓ Cerrada en ganancia':'⛔ Cerrada por stop-loss';
+    return `<tr><td>${c.name} (${s})</td><td>${S.alloc[s]}%</td><td>${fmtUsd(CAPITAL*S.alloc[s]/100)}</td><td>${fmt(b.price)}</td><td>${fmt(b.units,4)}</td><td>+${b.tp}% / −${b.sl}%</td><td>${st}</td><td style="font-family:var(--body)">${(S.just[s]||'—')}</td></tr>`; }).join('')+
+   `<tr><td><b>Reserva (caja)</b></td><td>${S.reserve}%</td><td>${fmtUsd(CAPITAL*S.reserve/100)}</td><td colspan="4">Liquidez para oportunidades e imprevistos</td><td style="font-family:var(--body)">Gestión del runway</td></tr>`;
+}
+function completeM3(){
+  if(S.day<7){ toast('✋ Completa los 7 días de simulación'); return; }
+  if(!S.m[2]){ S.m[2]=true; addXp(120,'Misión 3 completada'); }
+  go(4);
+}
+
+/* ================= MISIÓN 4 ================= */
+function kioskCheck(n,el){
+  if(n===2 && !(+document.getElementById('kioskAmt').value>0)){ toast('✋ Primero registra el monto del anticipo'); return; }
+  if(n===3 && document.getElementById('kioskDoc').value.trim().length<5){ toast('✋ Registra el comprobante o una nota de la operación'); return; }
+  S.kiosk[n-1]=true; el.classList.add('sel');
+  S.kioskAmt=document.getElementById('kioskAmt').value; S.kioskDoc=document.getElementById('kioskDoc').value;
+  setTask('k'+n,true); save();
+  if(S.kiosk.every(Boolean)) toast('🤝 Los tres sellos están completos: la operación conjunta es válida');
+}
+function completeM4(){
+  if(!S.kiosk.every(Boolean)){ toast('✋ Faltan sellos: ICO valida, NGE confirma, IEF documenta'); return; }
+  if(!S.m[3]){ S.m[3]=true; addXp(80,'Puente virtual→real completado'); }
+  go(5);
+}
+
+/* ================= MISIÓN 5 ================= */
+function countWords(){
+  const txt=document.getElementById('reflex').value.trim();
+  const n = txt? txt.split(/\s+/).length : 0;
+  const el=document.getElementById('wc');
+  el.textContent = n<100? `${n} palabras · te faltan ${100-n} para el mínimo (objetivo: 100–150)`
+                 : n>150? `${n} palabras · recorta ${n-150} para entrar al rango (objetivo: 100–150)`
+                 : `${n} palabras · ✓ dentro del rango 100–150`;
+  el.className='wordcount '+(n>=100&&n<=150?'ok':'bad');
+  S.reflex=txt; save(); return n;
+}
+function completeM5(){
+  const ids=['c1','c2','c3','c4','c5','c6'];
+  for(let i=0;i<ids.length;i++){ const v=document.getElementById(ids[i]).value.trim();
+    if(v.length<15){ toast(`✋ La pregunta ${i+1} del comité necesita una respuesta más completa. Usa la fórmula: Decisión + Dato + Razón.`); return; }
+    S.answers[ids[i]]=v; }
+  const w=countWords();
+  if(w<100||w>150){ toast(`✋ La reflexión tiene ${w} palabras: ajústala a 100–150`); return; }
+  S.bonus=document.getElementById('bonusTxt').value.trim();
+  if(!S.m[4]){ S.m[4]=true; addXp(150,'Defensa ante el comité');
+    if(S.bonus.length>20) addXp(50,'Bonus: reto adicional de USD 50 000'); }
+  go(6);
+}
+
+/* ================= RESULTADOS ================= */
+function renderFinal(){
+  const v=portfolioValue(), d=(v-CAPITAL)/CAPITAL*100;
+  document.getElementById('finVal').textContent=fmtUsd(v);
+  document.getElementById('finVal').style.color = d>=0?'var(--up)':'var(--down)';
+  document.getElementById('finDelta').textContent=`${d>=0?'▲ +':'▼ '}${d.toFixed(2)}% en 7 días simulados`;
+  document.getElementById('finXp').textContent=S.xp+' XP';
+  document.getElementById('finLevel').textContent='Rango alcanzado: '+updateLevel();
+  const closedSL=S.picks.some(s=>S.buys[s]&&S.buys[s].status==='stop-loss');
+  const closedTP=S.picks.some(s=>S.buys[s]&&S.buys[s].status==='take-profit');
+  document.getElementById('verdict').innerHTML =
+    d>=0 ? `"El portafolio terminó en <b style='color:var(--up)'>${fmtUsd(v)}</b>. Pero lo que más me impresionó no fue el número: fue que diversificaron, guardaron reserva y supieron explicar cada decisión con datos. <b>Eso es pensar como estrategas.</b> Bienvenidos al equipo."`
+        : `"El portafolio cerró en <b style='color:var(--down)'>${fmtUsd(v)}</b>. ¿Perdimos? Solo capital virtual. Lo que ganaron — leer el mercado, controlar el riesgo${closedSL?' y dejar que el stop-loss los protegiera':''} — <b>vale mucho más que USD 100 000</b>. En este comité, aprender a perder poco es aprender a ganar."`;
+  const B=[
+   ['🎓','Idioma del Mercado','Dominaste los 4 conceptos de la Academia', S.acad.every(Boolean)],
+   ['🔍','Ojo de Analista','Dominaste el reconocimiento del mercado', S.m[0]],
+   ['📐','Arquitecto Financiero','Estrategia diversificada y con reserva', S.m[1]],
+   ['🛡','Gestor del Riesgo','Definiste stop-loss y límites de pérdida', S.stopG>0],
+   ['🎯','Francotirador','Al menos un take-profit se ejecutó', closedTP],
+   ['🧊','Sangre Fría','Un stop-loss protegió tu capital', closedSL],
+   ['₿','Pionero Cripto','Completaste la operación real en el Kiosco', S.m[3]],
+   ['🎤','Voz del Comité','Defendiste tu estrategia con argumentos', S.m[4]],
+   ['💎','Visión 50K','Resolviste el reto adicional', S.bonus.length>20]
+  ];
+  document.getElementById('badges').innerHTML=B.map(b=>`<div class="badge ${b[3]?'won':''}"><div class="em">${b[0]}</div><b>${b[1]}</b><span>${b[2]}</span></div>`).join('');
+  buildReport(v,d);
+}
+function buildReport(v,d){
+  const date=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+  const rows=S.picks.map(s=>{ const b=S.buys[s]||{}; const c=COINS.find(x=>x.sym===s);
+    const st=b.status==='abierta'?'Abierta':b.status==='take-profit'?'Cerrada en ganancia (TP)':b.status==='stop-loss'?'Cerrada por stop-loss':'—';
+    return `<tr><td>${c.name} (${s})</td><td>${S.alloc[s]}%</td><td>${fmtUsd(CAPITAL*S.alloc[s]/100)}</td><td>${b.price?fmt(b.price):'—'}</td><td>+${b.tp||'—'}% / −${b.sl||'—'}%</td><td>${st}</td><td>${S.just[s]||'—'}</td></tr>`; }).join('');
+  const Q=['¿Cuál fue la estrategia?','¿Por qué esas criptomonedas?','¿Se realizó la operación demo o el registro del Kiosco?','¿Qué riesgo se identificó?','¿Qué harían si el mercado cae 10% mañana?','¿Qué aprendieron sobre invertir en criptoactivos?'];
+  document.getElementById('report').innerHTML=`
+   <img src="${document.querySelector('.logoplate img').src}" alt="UNIFRANZ" style="height:52px;margin-bottom:10px">
+   <h1>Crypto Challenge — Informe Final</h1>
+   <h2>UNIFRANZ · Facultad de Ciencias Económicas y Empresariales · Reto interdisciplinario ICO · NGE · IEF</h2>
+   <p class="meta"><b>Analista(s):</b> ${S.name} &nbsp;·&nbsp; <b>Carrera responsable:</b> ${S.role} &nbsp;·&nbsp; <b>Fecha:</b> ${date}</p>
+   <p class="meta"><b>Perfil de riesgo:</b> ${S.risk} &nbsp;·&nbsp; <b>Reserva de liquidez:</b> ${S.reserve}% &nbsp;·&nbsp; <b>Límite de pérdida global:</b> −${S.stopG}% &nbsp;·&nbsp; <b>Activo de mayor confianza:</b> ${S.trust} (${S.trustWhy})</p>
+   <h3>Resultado del portafolio</h3>
+   <p>Capital inicial: <b>USD 100 000</b> · Valor final tras 7 días simulados: <b>${fmtUsd(v)}</b> (${d>=0?'+':''}${d.toFixed(2)}%)</p>
+   <h3>Tabla de inversiones</h3>
+   <table><tr><th>Criptoactivo</th><th>% invertido</th><th>Monto</th><th>Precio compra</th><th>TP / SL</th><th>Estado</th><th>Motivo de elección</th></tr>${rows}
+   <tr><td><b>Reserva (caja)</b></td><td>${S.reserve}%</td><td>${fmtUsd(CAPITAL*S.reserve/100)}</td><td colspan="4">Liquidez estratégica (gestión del runway)</td></tr></table>
+   <h3>Operación real — Kiosco Bitcoin</h3>
+   <p>Anticipo: ${S.kioskAmt||'—'} · Documentación: ${S.kioskDoc||'—'} · Validación conjunta ICO / NGE / IEF: completa.</p>
+   <h3>Defensa ante el comité</h3>
+   ${Q.map((q,i)=>`<p><b>${i+1}. ${q}</b><br>${S.answers['c'+(i+1)]||'—'}</p>`).join('')}
+   <h3>Reflexión escrita</h3><p>${S.reflex||'—'}</p>
+   ${S.bonus?`<h3>Reto adicional (USD 50 000)</h3><p>${S.bonus}</p>`:''}
+   <p class="meta" style="margin-top:14px">Simulador educativo con capital 100% virtual · Fuentes de apoyo: coinmarketcap.com · labolsavirtual.com · Experiencia: ${S.xp} XP · Rango: ${updateLevel()}</p>`;
+}
+function printReport(){ buildReport(portfolioValue(),(portfolioValue()-CAPITAL)/CAPITAL*100); window.print(); }
+
+/* ================= GLOSARIO ================= */
+function renderGloss(){
+  document.getElementById('glossList').innerHTML=GLOSS.map(g=>`<div class="gterm" data-term="${g[0]}"><b>${g[0]}</b><p>${g[1]}</p><p class="ana">💬 <b>En simple:</b> ${g[2]}</p></div>`).join('');
+}
+function openGloss(){ renderGloss(); document.getElementById('glossBk').classList.add('on'); }
+function gotoTerm(name){
+  renderGloss(); document.getElementById('glossBk').classList.add('on');
+  const el=document.querySelector(`.gterm[data-term="${name}"]`);
+  if(el){ el.classList.add('hl'); if(el.scrollIntoView) el.scrollIntoView({block:'center'});
+    setTimeout(()=>el.classList.remove('hl'),2500); }
+}
+
+/* ================= INIT ================= */
+function init(){
+  const hadSave = load();
+  buildM1(); renderMarket(); renderTicker(); renderRail();
+  if(S.name){ document.getElementById('inpName').value=S.name;
+    document.querySelectorAll('#roleSel .role').forEach(r=>r.classList.toggle('sel',r.dataset.r===S.role)); }
+  setTeamPill();
+  document.getElementById('xp').textContent=S.xp; updateLevel();
+  // academia
+  S.acad.forEach((v,i)=>{ if(v){ const c=document.getElementById('ac'+i); c.classList.add('learned');
+    const b=c.querySelector('.okbtn'); b.classList.add('done'); b.textContent='✓ Dominado'; }});
+  const nA=S.acad.filter(Boolean).length;
+  if(nA){ document.getElementById('acadHint').innerHTML=`Conceptos dominados: <b style="color:${nA===4?'var(--up)':'var(--gold)'}">${nA} / 4</b>`;
+    if(nA===4) document.getElementById('acadNext').disabled=false; }
+  if(S.q1ok){setTask('t1',true); S.q1.forEach(s=>{const o=document.querySelector(`#q1opts .opt[data-s="${s}"]`);if(o)o.classList.add('sel');});}
+  if(S.q2ok){setTask('t2',true); const o=document.querySelector('#q2opts .opt[data-s="ZEC"]'); if(o)o.classList.add('right');}
+  if(S.q3ok){setTask('t3',true); const o=document.querySelector('#q3opts .opt[data-s="DOGE"]'); if(o)o.classList.add('right');}
+  if(S.newsSel>=0){ const n=document.querySelector(`.newsitem[data-i="${S.newsSel}"]`); if(n){n.classList.add('sel');
+    document.getElementById('q4hint').innerHTML=`<span style="color:var(--up)">✓ Noticia elegida:</span> "${NEWS[S.newsSel].h}"`; setTask('t4',true);} }
+  S.picks.forEach(s=>{const o=document.querySelector(`#q5opts .opt[data-s="${s}"]`);if(o)o.classList.add('sel');});
+  renderQ5just();
+  if(S.reflex) document.getElementById('reflex').value=S.reflex;
+  Object.keys(S.answers).forEach(k=>{const e=document.getElementById(k);if(e)e.value=S.answers[k];});
+  if(S.bonus) document.getElementById('bonusTxt').value=S.bonus;
+  if(!Array.isArray(S.kiosk)) S.kiosk=[false,false,false];
+  S.kiosk=[Boolean(S.kiosk[0]),Boolean(S.kiosk[1]),Boolean(S.kiosk[2])];
+  if(S.kioskAmt) document.getElementById('kioskAmt').value=S.kioskAmt;
+  if(S.kioskDoc) document.getElementById('kioskDoc').value=S.kioskDoc;
+  S.kiosk.forEach((v,i)=>{ if(v){ setTask('k'+(i+1),true);
+    const o=document.querySelector(`#k${i+1} .opt`); if(o)o.classList.add('sel'); }});
+  if(S.m[0]) buildM2();
+  if(S.log.length) document.getElementById('evLog').innerHTML=S.log.join('<br>');
+  if(S.screen>0) go(S.screen); else renderRail();
+  countWords();
+  // ¿Sesión previa con avance? Ofrecer continuar o empezar de cero
+  if(hadSave && hasProgress()){
+    const when = S.savedAt ? new Date(S.savedAt).toLocaleString('es-BO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+    const misTxt = S.screen===0?'Historia / Academia': S.screen===6?'Resultados finales': `Misión ${S.screen} · ${MISSIONS[S.screen].n}`;
+    document.getElementById('resumeInfo').innerHTML =
+      `<b>👥 Equipo:</b> ${S.name||'(sin registrar aún)'}<br>`+
+      `<b>📍 Te quedaste en:</b> ${misTxt}<br>`+
+      `<b>⚡ Progreso:</b> ${S.xp} XP · ${S.m.filter(Boolean).length}/5 misiones completadas<br>`+
+      `<b>🕐 Último guardado:</b> ${when}`;
+    document.getElementById('resumeBk').classList.add('on');
+  }
+}
+init();
+</script>
+<script>
+/* ================================================================
+   CAPA FLEXIBLE V2 · misiones autónomas + ficha objetivo por misión
+   ================================================================ */
+(function(){
+  const legacyGo = go;
+  const legacyBuildReport = buildReport;
+  const legacyRenderFinal = renderFinal;
+  const MISSION_META = [
+    null,
+    {icon:'🔍', title:'Explora el mercado', time:'8–15 min', desc:'Lee datos, contrasta fuentes y selecciona tres activos con argumentos.'},
+    {icon:'📐', title:'Diseña la estrategia', time:'10–15 min', desc:'Define riesgo, reserva, diversificación y límite de pérdida.'},
+    {icon:'⚡', title:'Ejecuta inversiones', time:'12–18 min', desc:'Registra órdenes, take-profit, stop-loss y observa siete jornadas.'},
+    {icon:'🛡️', title:'Valida la operación', time:'5–10 min', desc:'Aplica control interno, trazabilidad y documentación en modo demo.'},
+    {icon:'🎤', title:'Defiende la decisión', time:'8–15 min', desc:'Argumenta con la fórmula Decisión + Dato + Razón y reflexiona.'}
+  ];
+  const GOALS = {
+    1:'Identificar tres criptoactivos con señales distintas y justificar su selección usando datos verificables.',
+    2:'Distribuir USD 100 000 con coherencia entre riesgo, diversificación, liquidez y límites de pérdida.',
+    3:'Ejecutar y monitorear un portafolio virtual aplicando take-profit y stop-loss.',
+    4:'Documentar una operación demo mediante validación cruzada, presupuesto y evidencia verificable.',
+    5:'Comunicar una decisión financiera con datos, reconocer riesgos y explicar el aprendizaje logrado.'
+  };
+  const AWARDS = {1:[100,'Misión 1 completada'],2:[150,'Estrategia formalizada'],3:[120,'Misión 3 completada'],4:[80,'Validación operativa completada'],5:[150,'Defensa ante el comité']};
+  const COLORS=['#F7931A','#7C6CF0','#2BD98F'];
+  let pendingMission=0;
+
+  function normalizeFlexibleState(){
+    S.teamName=S.teamName||S.name||'';
+    S.members=Array.isArray(S.members)?S.members.slice(0,4):['','','',''];
+    while(S.members.length<4)S.members.push('');
+    S.objectives=S.objectives&&typeof S.objectives==='object'?S.objectives:{};
+    S.starterUsed=S.starterUsed||{};
+  }
+  normalizeFlexibleState();
+
+  function setField(id,val){const e=document.getElementById(id);if(e)e.value=val||'';}
+  function hydrateTeamFields(){
+    setField('inpName',S.teamName||S.name);
+    S.members.forEach((v,i)=>setField('member'+(i+1),v));
+  }
+  hydrateTeamFields();
+
+  window.startChallenge=function(){
+    const team=document.getElementById('inpName').value.trim();
+    const members=[1,2,3,4].map(i=>document.getElementById('member'+i).value.trim()).filter(Boolean);
+    if(!team){toast('✋ Escribe un nombre para el equipo');return;}
+    if(!members.length){toast('✋ Registra al menos un integrante');return;}
+    if(!S.role){toast('✋ Selecciona la carrera responsable principal');return;}
+    S.name=team;S.teamName=team;S.members=[...members,'','','',''].slice(0,4);setTeamPill();
+    if(!S.challengeStarted){S.challengeStarted=true;addXp(30,'Desafío aceptado');}
+    save();openMissionHub();
+  };
+
+  function starterBasket(){
+    if(S.picks.length===3)return false;
+    S.picks=['BTC','ETH','USDT'];
+    S.just.BTC=S.just.BTC||'Activo de mayor capitalización y referencia principal del mercado.';
+    S.just.ETH=S.just.ETH||'Segundo activo por capitalización y plataforma con utilidad tecnológica.';
+    S.just.USDT=S.just.USDT||'Moneda estable usada como refugio y soporte de liquidez.';
+    return true;
+  }
+  function starterStrategy(){
+    starterBasket();
+    const sum=S.picks.reduce((a,s)=>a+(+S.alloc[s]||0),0)+(+S.reserve||0);
+    if(sum!==100){S.reserve=15;S.alloc={...S.alloc,BTC:35,ETH:30,USDT:20};}
+    S.risk=S.risk||'Moderado';S.trust=S.trust||'BTC';S.trustWhy=S.trustWhy||'Combina liderazgo por capitalización, liquidez y reconocimiento global.';S.stopG=S.stopG||10;
+  }
+  function ensureMissionReady(i){
+    normalizeFlexibleState();
+    if(i===2){const used=starterBasket();buildM2();if(used&&!S.starterUsed[2]){S.starterUsed[2]=true;toast('🧰 Modo autónomo: cargué BTC, ETH y USDT como canasta inicial. Puedes modificarlos al completar la Misión 1.');}}
+    if(i===3){starterStrategy();buildM2();if(!S.starterUsed[3]){S.starterUsed[3]=true;toast('🧰 Modo autónomo: cargué una estrategia moderada editable para iniciar la simulación.');}}
+  }
+  window.go=function(i){
+    if(i>=1&&i<=5&&!S.name){toast('👥 Registra primero tu equipo en la historia inicial');legacyGo(0);storyStep(3);return;}
+    ensureMissionReady(i);legacyGo(i);injectMissionFlexNote(i);
+  };
+
+  window.renderRail=function(){
+    normalizeFlexibleState();
+    const r=document.getElementById('rail');
+    r.innerHTML=MISSIONS.map((m,i)=>{
+      const done=i>0&&i<6&&S.m[i-1];
+      const sheeted=i>0&&i<6&&!!S.objectives[i];
+      const unlocked=i===0||(S.name&&i>=1&&i<=5)||(i===6&&S.m.some(Boolean));
+      const action=i>=1&&i<=5?`openMission(${i})`:`go(${i})`;
+      return `<button class="${S.screen===i?'active':''} ${done?'done':''} ${sheeted?'sheeted':''} ${unlocked?'':'locked'}" onclick="${unlocked?action:''}" ${unlocked?'':'disabled'} title="${sheeted?'Ficha de objetivo guardada':'Misión disponible de forma independiente'}"><span class="n">${done?'✓':(i===0?'★':(i===6?'🏆':i))}</span>${m.icon} ${m.n}</button>`;
+    }).join('');
+    document.getElementById('progFill').style.width=(S.m.filter(Boolean).length/5*100)+'%';
+  };
+
+  function injectMissionFlexNote(i){
+    if(i<1||i>5)return;const s=document.getElementById('s'+i);if(!s||s.querySelector('.mission-flex-note'))return;
+    const title=s.querySelector('.title');if(!title)return;
+    const note=document.createElement('div');note.className='mission-flex-note';note.innerHTML=`<div class="mficon">🧩</div><div><b>Misión autónoma y complementaria</b><p>Puedes resolverla sin completar las anteriores. Si ya existen decisiones previas, se reutilizan; si no, el simulador carga un kit inicial editable. Al terminar, completarás la Ficha de Objetivo del Equipo y volverás al mapa.</p></div>`;
+    const sub=s.querySelector('.sub');(sub||title).insertAdjacentElement('afterend',note);
+  }
+  [1,2,3,4,5].forEach(injectMissionFlexNote);
+
+  window.openMissionHub=function(){
+    if(!S.name){toast('👥 Registra tu equipo para desbloquear el mapa');go(0);storyStep(3);return;}
+    normalizeFlexibleState();
+    const grid=document.getElementById('missionGrid');
+    grid.innerHTML=MISSION_META.slice(1).map((m,idx)=>{const i=idx+1,done=S.m[i-1],sheet=!!S.objectives[i];return `<article class="mission-card ${done?'done':''}"><div class="mc-top"><span class="mc-icon">${m.icon}</span><span class="mc-status">${done?'COMPLETADA':sheet?'FICHA GUARDADA':'DISPONIBLE'}</span></div><h4>Misión ${i} · ${m.title}</h4><p>${m.desc}</p><div class="mc-time">${m.time} · independiente</div><button class="btn ${done?'':'gold'}" onclick="openMission(${i})">${done?'Revisar / mejorar':'Iniciar misión'} →</button></article>`;}).join('');
+    const done=S.m.filter(Boolean).length,sheets=Object.keys(S.objectives).length;
+    document.getElementById('hubProgressFill').style.width=(done/5*100)+'%';document.getElementById('hubProgressText').textContent=`${done}/5 misiones completadas`;document.getElementById('hubSheetText').textContent=`${sheets} ficha${sheets===1?'':'s'} objetivo`;
+    document.getElementById('hubResultsBtn').disabled=done===0;document.getElementById('missionHubBk').classList.add('on');
+  };
+  window.closeMissionHub=function(){document.getElementById('missionHubBk').classList.remove('on');};
+  window.openMission=function(i){closeMissionHub();go(i);};
+
+  function validateM1(){const miss=[];if(!S.q1ok)miss.push('Tarea 1');if(!S.q2ok)miss.push('Tarea 2');if(!S.q3ok)miss.push('Tarea 3');if(S.newsSel<0)miss.push('Tarea 4');if(!checkT5())miss.push('Tarea 5');if(miss.length){toast('✋ Falta completar '+miss[0]);return false;}return true;}
+  window.completeM1=function(){if(validateM1())showObjectiveSheet(1);};
+  window.completeM2=function(){
+    starterBasket();const tot=S.picks.reduce((a,s)=>a+(S.alloc[s]||0),0)+S.reserve;
+    if(!S.risk){toast('✋ Paso 1: selecciona tu perfil de riesgo');return;}if(tot!==100){toast(`✋ El total debe ser 100% (llevas ${tot}%)`);return;}
+    for(const s of S.picks){const v=S.alloc[s]||0;if(v>60){toast(`✋ ${s} supera el 60%`);return;}if(v<5){toast(`✋ ${s} necesita al menos 5%`);return;}}
+    if(!S.trust){toast('✋ Elige el activo de mayor confianza');return;}if((S.trustWhy||'').trim().length<4){toast('✋ Justifica el activo de confianza con una frase completa');return;}if(!S.stopG){toast('✋ Define el límite de pérdida');return;}showObjectiveSheet(2);
+  };
+  window.completeM3=function(){if(S.day<7){toast('✋ Completa los 7 días de simulación');return;}showObjectiveSheet(3);};
+  window.completeM4=function(){if(!S.kiosk.every(Boolean)){toast('✋ Faltan los tres sellos de validación');return;}showObjectiveSheet(4);};
+  window.completeM5=function(){
+    const ids=['c1','c2','c3','c4','c5','c6'];for(let i=0;i<ids.length;i++){const v=document.getElementById(ids[i]).value.trim();if(v.length<15){toast(`✋ Completa mejor la respuesta ${i+1}`);return;}S.answers[ids[i]]=v;}
+    const w=countWords();if(w<100||w>150){toast(`✋ Ajusta la reflexión a 100–150 palabras (tienes ${w})`);return;}S.bonus=document.getElementById('bonusTxt').value.trim();showObjectiveSheet(5);
+  };
+
+  function objectiveDefault(m){
+    starterStrategy();
+    const existing=S.objectives[m];if(existing)return JSON.parse(JSON.stringify(existing));
+    const rows=S.picks.slice(0,3).map((s,i)=>{const c=COINS.find(x=>x.sym===s),b=S.buys[s],pct=+S.alloc[s]||[35,30,20][i],price=b?.price||c.p,amount=CAPITAL*pct/100;return {crypto:s,price:+price.toFixed(price<1?6:2),amount:+amount.toFixed(2),qty:amount/price,pct,trend:c.c7>1?'Sube':c.c7<-1?'Baja':'Estable',risk:VOLTXT[c.vol],tp:b?.tp||15,sl:b?.sl||S.stopG||10,reason:S.just[s]||`Seleccionado por su ${c.vol<=1?'estabilidad relativa':'combinación de tendencia y potencial'}, considerando una capitalización de ${fmtCap(c.cap)}.`};});
+    return {mission:m,goal:GOALS[m],capital:CAPITAL,target:m===1?5:m===2?8:m===3?10:m===4?4:8,strategy:(S.risk||'Moderado').replace('Moderado','Moderada').replace('Agresivo','Agresiva').replace('Conservador','Conservadora'),team:S.teamName||S.name,members:S.members,rows};
+  }
+  window.showObjectiveSheet=function(m){pendingMission=m;const o=objectiveDefault(m);document.getElementById('objectiveStamp').innerHTML=`MISIÓN<br>${m}`;setField('objGoal',o.goal);setField('objTarget',o.target);setField('objTeam',o.team);document.getElementById('objStrategy').value=o.strategy||'Moderada';[1,2,3,4].forEach(i=>setField('objMember'+i,(o.members||[])[i-1]||''));renderObjectiveRows(o.rows);document.getElementById('objectiveBk').classList.add('on');objectiveRecalc();};
+  window.closeObjectiveSheet=function(){document.getElementById('objectiveBk').classList.remove('on');};
+
+  function coinOptions(selected){return COINS.map(c=>`<option value="${c.sym}" ${c.sym===selected?'selected':''}>${c.sym} · ${c.name}</option>`).join('');}
+  function renderObjectiveRows(rows){document.getElementById('objectiveRows').innerHTML=rows.map((r,i)=>`<tr data-row="${i}"><td class="calc">${i+1}</td><td><select class="or-coin" onchange="objectiveCoinChanged(${i})">${coinOptions(r.crypto)}</select></td><td><input class="or-price" type="number" min="0.000001" step="any" value="${r.price}" oninput="objectiveRecalc()"></td><td><input class="or-amount" type="number" min="0" max="100000" step="100" value="${r.amount}" oninput="objectiveRecalc()"></td><td class="calc or-qty">${fmt(r.qty,6)}</td><td class="calc or-pct">${r.pct.toFixed(1)}%</td><td><select class="or-trend"><option ${r.trend==='Sube'?'selected':''}>⬆ Sube</option><option ${r.trend==='Estable'?'selected':''}>➡ Estable</option><option ${r.trend==='Baja'?'selected':''}>⬇ Baja</option></select></td><td><select class="or-risk"><option ${r.risk==='Baja'?'selected':''}>Bajo</option><option ${r.risk==='Media'?'selected':''}>Medio</option><option ${r.risk==='Muy alta'?'selected':''}>Alto</option></select></td><td><input class="or-tp" type="number" min="1" max="100" value="${r.tp}"></td><td><input class="or-sl" type="number" min="1" max="50" value="${r.sl}"></td><td><textarea class="or-reason" placeholder="Dato + criterio + relación con el objetivo">${r.reason}</textarea></td></tr>`).join('');}
+  window.objectiveCoinChanged=function(i){const tr=document.querySelector(`#objectiveRows tr[data-row="${i}"]`),sym=tr.querySelector('.or-coin').value,c=COINS.find(x=>x.sym===sym);tr.querySelector('.or-price').value=c.p.toFixed(c.p<1?6:2);tr.querySelector('.or-trend').value=c.c7>1?'⬆ Sube':c.c7<-1?'⬇ Baja':'➡ Estable';tr.querySelector('.or-risk').value=c.vol<=1?'Bajo':c.vol===2?'Medio':'Alto';objectiveRecalc();};
+  window.objectiveRecalc=function(){
+    let amount=0;const seg=[];document.querySelectorAll('#objectiveRows tr').forEach((tr,i)=>{const a=+tr.querySelector('.or-amount').value||0,p=+tr.querySelector('.or-price').value||0,pct=a/CAPITAL*100;amount+=a;tr.querySelector('.or-qty').textContent=p?fmt(a/p,6):'0';tr.querySelector('.or-pct').textContent=pct.toFixed(1)+'%';seg.push({pct,sym:tr.querySelector('.or-coin').value,col:COLORS[i]});});
+    const pct=amount/CAPITAL*100,res=Math.max(0,100-pct);document.getElementById('objTotalAmount').textContent=fmtUsd(amount);document.getElementById('objTotalPct').textContent=pct.toFixed(1)+'%';document.getElementById('objReserve').textContent=res.toFixed(1)+'%';const ok=amount>0&&amount<=CAPITAL;document.getElementById('objStatus').textContent=ok?'Coherente':'Revisar';document.getElementById('objStatus').style.color=ok?'var(--up)':'var(--down)';document.getElementById('allocationVisual').innerHTML=seg.map(x=>`<i style="width:${Math.min(x.pct,100)}%;background:${x.col}"></i>`).join('')+`<i style="width:${res}%;background:#34415c"></i>`;document.getElementById('allocationLegend').innerHTML=seg.map(x=>`<span style="color:${x.col}">● ${x.sym} ${x.pct.toFixed(1)}%</span>`).join('')+`<span>● Reserva ${res.toFixed(1)}%</span>`;
+  };
+  function collectObjective(){const rows=[...document.querySelectorAll('#objectiveRows tr')].map(tr=>{const sym=tr.querySelector('.or-coin').value,price=+tr.querySelector('.or-price').value||0,amount=+tr.querySelector('.or-amount').value||0,c=COINS.find(x=>x.sym===sym);return {crypto:sym,price,amount,qty:price?amount/price:0,pct:amount/CAPITAL*100,trend:tr.querySelector('.or-trend').value.replace(/^.\s/,''),risk:tr.querySelector('.or-risk').value,tp:+tr.querySelector('.or-tp').value||0,sl:+tr.querySelector('.or-sl').value||0,reason:tr.querySelector('.or-reason').value.trim(),name:c.name};});return {mission:pendingMission,goal:document.getElementById('objGoal').value.trim(),capital:CAPITAL,target:+document.getElementById('objTarget').value||0,strategy:document.getElementById('objStrategy').value,team:document.getElementById('objTeam').value.trim(),members:[1,2,3,4].map(i=>document.getElementById('objMember'+i).value.trim()).filter(Boolean),rows,savedAt:Date.now()};}
+  window.saveObjectiveSheet=function(){const o=collectObjective(),amount=o.rows.reduce((a,r)=>a+r.amount,0);if(o.goal.length<20){toast('✋ Explica el objetivo del equipo con al menos una frase completa');return;}if(!o.team){toast('✋ Registra el nombre del equipo');return;}if(!o.members.length){toast('✋ Registra al menos un integrante');return;}if(o.rows.some(r=>!r.crypto||r.amount<=0||r.price<=0||r.reason.length<12)){toast('✋ Completa las tres decisiones: activo, precio, monto y motivo');return;}if(amount>CAPITAL){toast('✋ El monto invertido supera USD 100 000');return;}
+    S.objectives[pendingMission]=o;S.teamName=o.team;S.name=o.team;S.members=[...o.members,'','','',''].slice(0,4);if(!S.m[pendingMission-1]){S.m[pendingMission-1]=true;const [xp,msg]=AWARDS[pendingMission];addXp(xp,msg);if(pendingMission===2&&S.reserve>=10&&S.reserve<=25)addXp(30,'Bonus: liquidez saludable');if(pendingMission===5&&S.bonus.length>20)addXp(50,'Bonus: visión USD 50 000');}
+    save();closeObjectiveSheet();renderRail();toast('▣ Ficha de objetivo guardada. La misión ya dejó una evidencia visible.');setTimeout(openMissionHub,450);
+  };
+  window.printObjectiveSheet=function(){const o=collectObjective();document.getElementById('report').innerHTML=objectivePrintHtml(o,true);window.print();};
+  function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+  function objectivePrintHtml(o,solo){const rows=o.rows.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.name||r.crypto)} (${esc(r.crypto)})</td><td>${fmt(r.price,6)}</td><td>${fmtUsd(r.amount)}</td><td>${fmt(r.qty,6)}</td><td>${r.pct.toFixed(1)}%</td><td>${esc(r.trend)}</td><td>${esc(r.risk)}</td><td>+${r.tp}%</td><td>−${r.sl}%</td><td>${esc(r.reason)}</td></tr>`).join('');return `${solo?`<img src="${document.querySelector('.logoplate img').src}" style="height:48px;margin-bottom:8px">`:''}<h1>Ficha de Objetivo del Equipo · Misión ${o.mission}</h1><h2>Crypto Challenge FCEE · UNIFRANZ · Evidencia de aprendizaje significativo</h2><p><b>Objetivo:</b> ${esc(o.goal)}</p><p><b>Capital inicial:</b> USD 100 000 · <b>Meta:</b> ${o.target}% · <b>Estrategia:</b> ${esc(o.strategy)}</p><p><b>Equipo:</b> ${esc(o.team)} · <b>Integrantes:</b> ${o.members.map(esc).join(' · ')}</p><table><tr><th>N.º</th><th>Criptomoneda</th><th>Precio</th><th>Monto</th><th>Cantidad</th><th>%</th><th>Tendencia</th><th>Riesgo</th><th>TP</th><th>SL</th><th>Motivo</th></tr>${rows}</table>`;}
+
+  window.buildReport=function(v,d){legacyBuildReport(v,d);const saved=Object.keys(S.objectives).sort((a,b)=>a-b);if(saved.length){document.getElementById('report').insertAdjacentHTML('beforeend','<h3>Fichas de Objetivo por misión</h3>'+saved.map(k=>objectivePrintHtml(S.objectives[k],false)).join('<hr style="margin:18px 0">'));}};
+  window.renderFinal=function(){
+    starterStrategy();legacyRenderFinal();const done=S.m.filter(Boolean).length;document.getElementById('finMis').textContent=`${done} / 5`;if(!Object.keys(S.buys).length){document.getElementById('finVal').textContent='USD 100 000';document.getElementById('finVal').style.color='var(--gold)';document.getElementById('finDelta').textContent='Capital de referencia · aún no se ejecutó la Misión 3';}
+    if(done<5)document.getElementById('verdict').innerHTML=`"El equipo completó <b style='color:var(--up)'>${done} misión${done===1?'':'es'}</b> y dejó ${Object.keys(S.objectives).length} evidencia${Object.keys(S.objectives).length===1?'':'s'} documentada${Object.keys(S.objectives).length===1?'':'s'}. En una demostración breve, esto permite ver aprendizaje significativo sin exigir un recorrido lineal. El mapa queda abierto para seguir construyendo."`;
+  };
+
+  // Safer wording in runtime controls.
+  const kDoc=document.getElementById('kioskDoc');if(kDoc)kDoc.setAttribute('placeholder','Ej.: Demo #4521 · 10:35 · orden simulada de BTC · captura guardada');
+  document.querySelectorAll('.navbtns .btn').forEach(b=>{if(b.textContent.includes('Convencer al comité'))b.textContent='Completar ficha objetivo';});
+  hydrateTeamFields();renderRail();
+})();
+
+</script>
+<script>
+/* ================================================================
+   EXPERIENCIA AMIGABLE V3
+   Esta capa conserva la lógica financiera y simplifica orientación,
+   escritura, mapa de misiones y ficha de objetivo.
+   ================================================================ */
+(function(){
+  const FMETA={
+    1:{icon:'🔎',title:'Explora el mercado',time:'8–15 min',do:'Compararás datos y elegirás tres activos.',get:'Una selección explicada con evidencias.',now:'Observar y comparar antes de decidir',deliver:'3 activos + razones'},
+    2:{icon:'🧩',title:'Diseña la estrategia',time:'10–15 min',do:'Repartirás el capital y fijarás límites.',get:'Un plan de inversión equilibrado.',now:'Convertir datos en un plan',deliver:'Distribución + protección'},
+    3:{icon:'⚡',title:'Prueba tus decisiones',time:'12–18 min',do:'Ejecutarás compras virtuales y avanzarás 7 días.',get:'Resultados y una bitácora automática.',now:'Probar el plan sin dinero real',deliver:'Portafolio + bitácora'},
+    4:{icon:'🛡️',title:'Valida la operación',time:'5–10 min',do:'Aplicarás tres controles de equipo.',get:'Un registro verificable y responsable.',now:'Documentar y verificar',deliver:'3 sellos + registro'},
+    5:{icon:'🎙️',title:'Explica tu decisión',time:'8–15 min',do:'Construirás argumentos con datos.',get:'Una defensa clara y una reflexión.',now:'Comunicar lo aprendido',deliver:'Argumentos + reflexión'}
+  };
+  const FGOALS={
+    1:'Elegir tres criptoactivos usando datos de mercado y explicar por qué podrían formar parte del portafolio.',
+    2:'Distribuir USD 100 000 de manera coherente con el riesgo, la liquidez y los límites de pérdida del equipo.',
+    3:'Probar un portafolio virtual y observar cómo las protecciones cambian el resultado durante siete jornadas.',
+    4:'Documentar una operación demo con responsabilidades compartidas, controles y evidencia verificable.',
+    5:'Explicar una decisión financiera con datos, reconocer riesgos y expresar qué aprendió el equipo.'
+  };
+  const FAWARDS={1:[100,'Misión 1 completada'],2:[150,'Estrategia formalizada'],3:[120,'Simulación completada'],4:[80,'Validación completada'],5:[150,'Decisión comunicada']};
+  const FCOLORS=['#F2B441','#7C6CF0','#2BD98F'];
+  let objMission=0,objStep=1,objDraftTimer=null;
+
+  function fesc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+  function clone(v){return JSON.parse(JSON.stringify(v));}
+  function normRisk(v){v=String(v||'').toLowerCase();if(v.includes('alt'))return 'Alto';if(v.includes('baj')||v.includes('estab'))return 'Bajo';return 'Medio';}
+  function normStrategy(v){v=String(v||'Moderada');if(v.includes('Conserv'))return 'Conservadora';if(v.includes('Agres'))return 'Agresiva';return 'Moderada';}
+  function ensureFriendlyState(){
+    S.objectives=S.objectives&&typeof S.objectives==='object'?S.objectives:{};
+    S.objectiveDrafts=S.objectiveDrafts&&typeof S.objectiveDrafts==='object'?S.objectiveDrafts:{};
+    S.members=Array.isArray(S.members)?S.members.slice(0,4):[];while(S.members.length<4)S.members.push('');
+    S.routeChoice=S.routeChoice||'flash';S.studentGuide=S.studentGuide!==false;
+  }
+  function ensureStarter(){
+    ensureFriendlyState();
+    if(!Array.isArray(S.picks)||S.picks.length<3){S.picks=['BTC','ETH','USDT'];}
+    S.just=S.just||{};
+    S.just.BTC=S.just.BTC||'Elegimos BTC por su tamaño de mercado y porque sirve como referencia para comparar otros activos.';
+    S.just.ETH=S.just.ETH||'Elegimos ETH por su utilidad tecnológica y su posición relevante dentro del mercado.';
+    S.just.USDT=S.just.USDT||'Elegimos USDT para mantener una parte estable y disponible como reserva de liquidez.';
+    S.alloc=S.alloc||{};
+    const total=S.picks.slice(0,3).reduce((a,s)=>a+(+S.alloc[s]||0),0)+(+S.reserve||0);
+    if(total!==100){S.reserve=15;S.alloc={...S.alloc,[S.picks[0]]:35,[S.picks[1]]:30,[S.picks[2]]:20};}
+    S.risk=S.risk||'Moderado';S.stopG=S.stopG||10;
+  }
+
+  /* ---------- Orientación visual ---------- */
+  function addFriendlyHeader(){
+    const hud=document.querySelector('header .hud');if(!hud||document.getElementById('friendlyHelpHeader'))return;
+    const b=document.createElement('button');b.id='friendlyHelpHeader';b.className='btn sm friendly-help-btn';b.innerHTML='🧭 ¿Qué hago ahora?';b.onclick=openStudentCoach;
+    const gloss=[...hud.querySelectorAll('button')].find(x=>x.textContent.includes('Glosario'));hud.insertBefore(b,gloss||null);
+  }
+  function addIntroSupport(){
+    const st0=document.getElementById('st0');if(st0&&!st0.querySelector('.beginner-banner')){
+      const btn=st0.querySelector('.btn.gold');
+      const box=document.createElement('div');box.className='beginner-banner';box.innerHTML='<div class="bb-icon">🌱</div><div><b>No necesitas saber de criptomonedas para empezar.</b><p>El simulador explica cada concepto, guarda tu avance y te deja intentar otra vez. Todas las operaciones usan dinero virtual.</p></div>';btn.parentElement.insertBefore(box,btn);
+      const qa=document.createElement('div');qa.className='quick-actions';qa.innerHTML='<button class="btn" onclick="openStudentCoach()">🧭 Ver cómo funciona</button><button class="btn gold" onclick="storyStep(1)">Comenzar la historia →</button>';btn.replaceWith(qa);
+    }
+    const st3=document.getElementById('st3');if(st3&&!st3.querySelector('.no-wrong')){
+      const card=st3.querySelector('.card');const note=document.createElement('div');note.className='no-wrong';note.innerHTML='<span>💡</span><div><b>No existe una cartera “perfecta”.</b> Se valora que el equipo use datos, explique su decisión y reconozca los riesgos. Pueden revisar cualquier misión las veces que necesiten.</div>';card.insertBefore(note,card.querySelector('div[style*="text-align:center"]'));
+    }
+  }
+  function addMissionCompasses(){
+    [1,2,3,4,5].forEach(i=>{const s=document.getElementById('s'+i);if(!s||s.querySelector('.student-compass'))return;const m=FMETA[i];const note=s.querySelector('.mission-flex-note')||s.querySelector('.sub');const c=document.createElement('div');c.className='student-compass';c.innerHTML=`<div class="compass-cell"><span>Estás aquí</span><b>Misión ${i}: ${m.title}</b></div><div class="compass-cell"><span>Harás</span><b>${m.now}</b></div><div class="compass-cell"><span>Entregarás</span><b>${m.deliver}</b></div><button class="btn sm friendly-help-btn compass-help" onclick="openStudentCoach()">Ver guía corta</button>`;note.insertAdjacentElement('afterend',c);});
+  }
+
+  /* ---------- Coach contextual ---------- */
+  const COACH={
+    0:{title:'Conoce el reto sin presión',now:'Historia y preparación del equipo',steps:[['Lee la situación','La empresa necesita una decisión y tu equipo será quien la construya.'],['Aprende cuatro palabras','Capitalización, tendencia, volatilidad y diversificación aparecen durante las misiones.'],['Registra tu equipo','Escribe un nombre, al menos un integrante y elige una carrera responsable.']],tip:'Puedes abrir el mapa después del registro y elegir cualquier misión.'},
+    1:{title:'Mira primero, decide después',now:'Comparar información del mercado',steps:[['Observa la tabla','Busca tamaño, cambio en 7 días y nivel de volatilidad.'],['Resuelve una tarea por vez','Cada error trae una pista. No pierdes puntos por volver a intentar.'],['Elige tres activos','Escribe una razón breve basada en un dato.']],tip:'Una razón útil tiene esta forma: “Elegimos ___ porque el dato ___ muestra ___”.'},
+    2:{title:'Construye un plan equilibrado',now:'Distribuir USD 100 000',steps:[['Elige el nivel de riesgo','Conservador protege más; agresivo acepta movimientos mayores.'],['Mueve los porcentajes','Activos + reserva deben sumar exactamente 100%.'],['Define tus frenos','La reserva y el límite de pérdida protegen al equipo.']],tip:'No pongas más de 60% en un solo activo. La reserva también es una decisión.'},
+    3:{title:'Prueba el plan de forma segura',now:'Comprar y simular siete jornadas',steps:[['Revisa las protecciones','Take-profit asegura una ganancia; stop-loss frena una pérdida.'],['Ejecuta tres compras virtuales','El sistema calcula las unidades automáticamente.'],['Avanza los siete días','Lee el gráfico y la bitácora después de cada jornada.']],tip:'El resultado no determina la nota. Lo importante es explicar qué funcionó y qué cambiarías.'},
+    4:{title:'Haz visible el control',now:'Validar y documentar una operación demo',steps:[['Valida el activo','Confirma que fue analizado.'],['Confirma el monto','Verifica que cabe dentro del plan.'],['Registra una evidencia','Anota el número demo, hora o una descripción breve.']],tip:'No se necesita dinero real. Una evidencia demo es suficiente.'},
+    5:{title:'Cuenta la historia de la decisión',now:'Explicar con claridad',steps:[['Di qué decidieron','Empieza por la estrategia y la distribución.'],['Agrega un dato','Incluye un porcentaje, una tendencia o un nivel de riesgo.'],['Explica la razón','Conecta el dato con el objetivo del equipo.']],tip:'Usa la fórmula: Decisión + Dato + Razón. Puedes generar un borrador y luego personalizarlo.'},
+    6:{title:'Revisa todo lo construido',now:'Tablero acumulado',steps:[['Mira las evidencias','Cada ficha muestra una decisión documentada.'],['Identifica el aprendizaje','Compara el primer objetivo con el resultado.'],['Genera el informe','Imprime o guarda el reporte en PDF.']],tip:'Una sola misión completada ya produce una evidencia útil para la demostración.'}
+  };
+  function buildCoach(){if(document.getElementById('studentCoach'))return;document.body.insertAdjacentHTML('beforeend',`<button class="coach-fab" onclick="openStudentCoach()" aria-label="Abrir ayuda"><span>🧭</span><span>¿Qué hago ahora?</span></button><aside class="coach-panel" id="studentCoach" aria-label="Guía para estudiantes"><div class="coach-head"><div><h3>NOVA · Tu guía</h3><p>Orientación breve, sin respuestas escondidas</p></div><button class="btn sm" onclick="closeStudentCoach()">✕</button></div><div class="coach-body" id="coachBody"></div><div class="coach-actions"><button class="btn" onclick="closeStudentCoach();openGloss()">📖 Ver palabras clave</button><button class="btn gold" onclick="coachGo()">Ir al bloque de trabajo</button></div></aside>`);}
+  window.openStudentCoach=function(){buildCoach();const c=COACH[S.screen]||COACH[0];document.getElementById('coachBody').innerHTML=`<div class="coach-now"><span>Ahora mismo</span><b>${c.now}</b></div><h4>${c.title}</h4>${c.steps.map((x,i)=>`<div class="coach-step"><i>${i+1}</i><div><b>${x[0]}</b><p>${x[1]}</p></div></div>`).join('')}<div class="coach-tip"><b>Pista:</b> ${c.tip}</div>`;document.getElementById('studentCoach').classList.add('on');};
+  window.closeStudentCoach=function(){document.getElementById('studentCoach')?.classList.remove('on');};
+  window.coachGo=function(){closeStudentCoach();const s=document.getElementById('s'+S.screen);const target=s?.querySelector('.task,.card,.acad,.route-grid');target?.scrollIntoView({behavior:'smooth',block:'start'});};
+
+  /* ---------- Mapa con recomendación y tiempo ---------- */
+  function prepareHub(){
+    const modal=document.querySelector('#missionHubBk .mission-modal');if(!modal||document.getElementById('routeSelector'))return;
+    const progress=modal.querySelector('.hub-progress');const block=document.createElement('div');block.innerHTML=`<div class="route-selector" id="routeSelector"><button data-route="flash" onclick="selectFriendlyRoute('flash')">⚡ Tengo 10 minutos</button><button data-route="explore" onclick="selectFriendlyRoute('explore')">🧭 Tengo 20–30 minutos</button><button data-route="complete" onclick="selectFriendlyRoute('complete')">🚀 Tengo 45 minutos o más</button></div><div class="route-advice" id="routeAdvice"></div>`;progress.parentNode.insertBefore(block,progress);
+    const old=modal.querySelector('.objective-help');if(old)old.innerHTML='<b>Cómo se conectan:</b> observar → planificar → probar → verificar → explicar. Puedes entrar por cualquier misión; cuando falten datos, el simulador carga un ejemplo editable para que el equipo nunca quede bloqueado.';
+  }
+  window.selectFriendlyRoute=function(route){ensureFriendlyState();S.routeChoice=route;save();document.querySelectorAll('#routeSelector button').forEach(b=>b.classList.toggle('sel',b.dataset.route===route));const n=route==='flash'?1:route==='explore'?2:5;const txt=route==='flash'?'Completa una misión y su ficha. Te recomendamos empezar por la primera misión pendiente.':route==='explore'?'Completa dos misiones que se conecten. Una buena dupla es Explorar + Diseñar o Probar + Explicar.':'Recorre las cinco misiones y construye el informe completo.';document.getElementById('routeAdvice').innerHTML=`<span>${route==='flash'?'⚡':route==='explore'?'🧭':'🚀'}</span><div><b>Ruta seleccionada: ${n} misión${n>1?'es':''}.</b> ${txt}</div>`;document.querySelectorAll('.mission-card').forEach(c=>c.classList.remove('route-pick'));const cards=[...document.querySelectorAll('.mission-card')];let picks=[];if(route==='flash')picks=cards.filter(c=>!c.classList.contains('done')).slice(0,1);if(route==='explore')picks=cards.filter(c=>!c.classList.contains('done')).slice(0,2);if(route==='complete')picks=cards;picks.forEach(c=>c.classList.add('route-pick'));};
+  window.openMissionHub=function(){
+    if(!S.name){toast('👥 Registra tu equipo para abrir el mapa');go(0);storyStep(3);return;}
+    ensureFriendlyState();prepareHub();
+    const grid=document.getElementById('missionGrid');const firstPending=Math.max(1,S.m.findIndex(v=>!v)+1);
+    grid.innerHTML=Object.entries(FMETA).map(([key,m])=>{const i=+key,done=!!S.m[i-1],sheet=!!S.objectives[i],rec=i===firstPending&&!done;return `<article class="mission-card ${done?'done':''} ${rec?'recommended':''}" data-index="${i}"><div class="mc-top"><span class="mc-icon">${m.icon}</span><span class="mc-status">${done?'COMPLETADA':sheet?'BORRADOR GUARDADO':'DISPONIBLE'}</span></div><h4>Misión ${i} · ${m.title}</h4><div class="mc-do">${m.do}</div><div class="mc-get">${m.get}</div><div class="mc-time">⏱ ${m.time} · funciona sola</div><button class="btn ${done?'':'gold'}" onclick="openMission(${i})">${done?'Revisar y mejorar':'Comenzar con guía'} →</button></article>`;}).join('');
+    const done=S.m.filter(Boolean).length,sheets=Object.keys(S.objectives).length;document.getElementById('hubProgressFill').style.width=(done/5*100)+'%';document.getElementById('hubProgressText').textContent=`${done}/5 misiones completadas`;document.getElementById('hubSheetText').textContent=`${sheets} ficha${sheets===1?'':'s'} guardada${sheets===1?'':'s'}`;document.getElementById('hubResultsBtn').disabled=done===0;document.getElementById('missionHubBk').classList.add('on');selectFriendlyRoute(S.routeChoice);
+  };
+
+  /* ---------- Ficha de objetivo guiada ---------- */
+  function objectiveDefault(m){
+    ensureStarter();const saved=S.objectives[m]||S.objectiveDrafts[m];if(saved)return clone(saved);
+    const pcts=[35,30,20];const rows=S.picks.slice(0,3).map((sym,i)=>{const c=COINS.find(x=>x.sym===sym)||COINS[i],buy=S.buys?.[sym],pct=+S.alloc?.[sym]||pcts[i],price=buy?.price||c.p,reason=S.just?.[sym]||`Elegimos ${sym} porque sus datos de tamaño, tendencia y riesgo aportan una función distinta al portafolio.`;return {crypto:sym,name:c.name,price:+price.toFixed(price<1?6:2),amount:+(CAPITAL*pct/100).toFixed(2),qty:CAPITAL*pct/100/price,pct,trend:c.c7>1?'Sube':c.c7<-1?'Baja':'Estable',risk:c.vol<=1?'Bajo':c.vol===2?'Medio':'Alto',tp:buy?.tp||15,sl:buy?.sl||S.stopG||10,reason};});
+    return {mission:m,goal:FGOALS[m],learning:'',capital:CAPITAL,target:m===1?5:m===2?8:m===3?10:m===4?4:8,strategy:normStrategy(S.risk),team:S.teamName||S.name,members:S.members.filter(Boolean),rows};
+  }
+  function objectiveShell(){
+    document.getElementById('objectiveBk').innerHTML=`<div class="modal objective-modal friendly-objective" role="dialog" aria-label="Ficha de objetivo del equipo"><div class="objective-scroll friendly-scroll"><div class="objective-friendly-head"><div><div class="eyebrow">Cierre guiado · evidencia de aprendizaje</div><h3>Ficha de Objetivo del Equipo</h3><p>La ficha ya viene adelantada con las decisiones de la misión. Revisen, expliquen y guarden. No necesitan llenar una tabla desde cero.</p></div><div class="objective-head-actions"><span class="objective-mission-pill" id="objectiveStamp">MISIÓN —</span><button class="btn sm" onclick="closeObjectiveSheet()">✕</button></div></div><div class="wizard-steps"><button class="wizard-step active" data-step="1" onclick="objectiveStep(1)"><span>1</span>Propósito</button><button class="wizard-step" data-step="2" onclick="objectiveStep(2)"><span>2</span>Decisiones</button><button class="wizard-step" data-step="3" onclick="objectiveStep(3)"><span>3</span>Revisar</button></div><section class="wizard-panel on" data-panel="1" id="objPanel1"></section><section class="wizard-panel" data-panel="2" id="objPanel2"></section><section class="wizard-panel" data-panel="3" id="objPanel3"></section><div class="wizard-footer"><div class="wf-status"><span class="draft-chip" id="objectiveDraftStatus">💾 Los cambios se guardan como borrador</span><div id="objectiveFooterStatus">Completa los pasos a tu ritmo.</div></div><div class="wf-actions"><button class="btn" id="objBack" onclick="objectivePrev()">← Atrás</button><button class="btn gold" id="objNext" onclick="objectiveNext()">Continuar →</button><button class="btn gold" id="objSave" onclick="saveObjectiveSheet()" style="display:none">✓ Guardar ficha y volver al mapa</button></div></div></div></div>`;
+  }
+  function renderPurpose(o){document.getElementById('objPanel1').innerHTML=`<div class="friendly-section"><h4>1. ¿Qué quiere lograr el equipo?</h4><p class="hint">Usa una frase concreta: acción + criterio + resultado esperado.</p><label class="f">Objetivo del equipo<textarea id="objGoal" placeholder="Ej.: Proteger el capital y obtener un rendimiento controlado usando datos y límites de pérdida.">${fesc(o.goal)}</textarea></label><div class="mini-grid"><label class="f">Capital inicial<input id="objCapital" value="USD 100 000" disabled></label><label class="f">Meta de rendimiento (%)<input id="objTarget" type="number" min="-20" max="100" step="0.5" value="${o.target}"></label></div></div><div class="friendly-section"><h4>2. ¿Cómo actuará el equipo?</h4><p class="hint">Elige la estrategia que mejor representa su tolerancia al riesgo.</p><input type="hidden" id="objStrategy" value="${fesc(normStrategy(o.strategy))}"><div class="strategy-choices">${[['Conservadora','Prioriza estabilidad y reserva.'],['Moderada','Equilibra crecimiento y protección.'],['Agresiva','Acepta variaciones mayores.']].map(x=>`<button class="strategy-choice ${normStrategy(o.strategy)===x[0]?'sel':''}" onclick="chooseObjStrategy('${x[0]}',this)"><b>${x[0]}</b><small>${x[1]}</small></button>`).join('')}</div></div><div class="friendly-section"><h4>3. ¿Quiénes tomaron la decisión?</h4><div class="mini-grid"><label class="f">Nombre del equipo<input id="objTeam" maxlength="60" value="${fesc(o.team)}"></label><label class="f">Integrante 1<input id="objMember1" value="${fesc(o.members?.[0]||'')}"></label><label class="f">Integrante 2 (opcional)<input id="objMember2" value="${fesc(o.members?.[1]||'')}"></label><label class="f">Integrante 3 (opcional)<input id="objMember3" value="${fesc(o.members?.[2]||'')}"></label><label class="f">Integrante 4 (opcional)<input id="objMember4" value="${fesc(o.members?.[3]||'')}"></label></div></div>`;}
+  function coinOptions(selected){return COINS.map(c=>`<option value="${c.sym}" ${c.sym===selected?'selected':''}>${c.sym} · ${c.name}</option>`).join('');}
+  function renderDecisions(rows){document.getElementById('objPanel2').innerHTML=`<div class="friendly-section"><h4>Tres decisiones de inversión</h4><p class="hint">Los cálculos aparecen solos. Concéntrate en revisar los datos y explicar el motivo.</p><div class="decision-list" id="objectiveRows">${rows.map((r,i)=>decisionCard(r,i)).join('')}</div><div class="no-wrong"><span>🧠</span><div><b>Consejo:</b> evita repetir la misma razón. Cada activo debería cumplir una función diferente: crecimiento, estabilidad, diversificación o liquidez.</div></div></div>`;}
+  function decisionCard(r,i){return `<article class="decision-card" data-row="${i}"><div class="decision-title"><div style="display:flex;align-items:center;gap:8px"><span class="decision-number">${i+1}</span><b>Decisión ${i+1}</b></div><span class="draft-chip">editable</span></div><label class="f">Criptomoneda<select class="or-coin" onchange="objectiveCoinChanged(${i})">${coinOptions(r.crypto)}</select></label><label class="f">Monto a invertir (USD)<input class="or-amount" type="number" min="0" max="100000" step="100" value="${r.amount}"></label><div class="decision-calc"><div><span>Comprarías</span><b class="or-qty">${fmt(r.qty,6)}</b></div><div><span>Parte de la cartera</span><b class="or-pct">${(+r.pct||0).toFixed(1)}%</b></div></div><div class="mini-grid"><label class="f">Tendencia<select class="or-trend"><option ${r.trend==='Sube'?'selected':''}>Sube</option><option ${r.trend==='Estable'?'selected':''}>Estable</option><option ${r.trend==='Baja'?'selected':''}>Baja</option></select></label><label class="f">Nivel de riesgo<select class="or-risk"><option ${normRisk(r.risk)==='Bajo'?'selected':''}>Bajo</option><option ${normRisk(r.risk)==='Medio'?'selected':''}>Medio</option><option ${normRisk(r.risk)==='Alto'?'selected':''}>Alto</option></select></label></div><label class="f">¿Por qué lo eligieron?<textarea class="or-reason" placeholder="Elegimos este activo porque el dato… muestra… y ayuda al objetivo porque…">${fesc(r.reason)}</textarea></label><div class="reason-chips"><button onclick="addReasonGuide(${i},'tamaño')">+ Tamaño</button><button onclick="addReasonGuide(${i},'tendencia')">+ Tendencia</button><button onclick="addReasonGuide(${i},'riesgo')">+ Riesgo</button><button onclick="addReasonGuide(${i},'función')">+ Función</button></div><details class="advanced-toggle"><summary>Ver precio y protecciones</summary><div class="advanced-fields"><label class="f">Precio compra $<input class="or-price" type="number" min="0.000001" step="any" value="${r.price}"></label><label class="f">Meta ganancia %<input class="or-tp" type="number" min="1" max="100" value="${r.tp}"></label><label class="f">Freno pérdida %<input class="or-sl" type="number" min="1" max="50" value="${r.sl}"></label></div></details></article>`;}
+  function renderReview(o){document.getElementById('objPanel3').innerHTML=`<div class="friendly-section"><h4>Así queda el objetivo del equipo</h4><div class="summary-layout"><div class="donut-wrap"><div class="objective-donut" id="objDonut"><div class="donut-center"><span>Monto asignado</span><b id="objTotalPct">0%</b></div></div><div class="allocation-legend" id="allocationLegend" style="justify-content:center;margin-top:10px"></div></div><div><div class="objective-totals"><div class="objective-kpi"><span>Invertido</span><b id="objTotalAmount">$ 0</b></div><div class="objective-kpi"><span>Reserva</span><b id="objReserve">0%</b></div><div class="objective-kpi"><span>Meta</span><b id="objTargetSummary">0%</b></div><div class="objective-kpi"><span>Estado</span><b id="objStatus">Revisando</b></div></div><div class="summary-decisions" id="objectiveSummaryRows"></div></div></div></div><div class="friendly-section"><h4>✏️ ¿Qué aprendizaje se lleva el equipo?</h4><p class="hint">Escribe una conclusión breve de esta misión. No repitas el objetivo: cuenta qué descubrieron o qué cambiarían.</p><label class="f" style="margin:0">Conclusión del equipo<textarea id="objLearning" placeholder="Aprendimos que… La próxima vez…">${fesc(o.learning||'')}</textarea></label><div class="live-checklist" id="objectiveChecklist"></div></div><div class="objective-actions"><button class="btn" onclick="printObjectiveSheet()">🖨 Vista para imprimir / PDF</button></div>`;}
+  function collectObjectiveFriendly(){
+    const rows=[...document.querySelectorAll('.decision-card')].map(card=>{const sym=card.querySelector('.or-coin').value,c=COINS.find(x=>x.sym===sym),price=+card.querySelector('.or-price').value||0,amount=+card.querySelector('.or-amount').value||0;return {crypto:sym,name:c?.name||sym,price,amount,qty:price?amount/price:0,pct:amount/CAPITAL*100,trend:card.querySelector('.or-trend').value,risk:card.querySelector('.or-risk').value,tp:+card.querySelector('.or-tp').value||0,sl:+card.querySelector('.or-sl').value||0,reason:card.querySelector('.or-reason').value.trim()};});
+    return {mission:objMission,goal:document.getElementById('objGoal')?.value.trim()||'',learning:document.getElementById('objLearning')?.value.trim()||S.objectiveDrafts?.[objMission]?.learning||'',capital:CAPITAL,target:+document.getElementById('objTarget')?.value||0,strategy:document.getElementById('objStrategy')?.value||'Moderada',team:document.getElementById('objTeam')?.value.trim()||'',members:[1,2,3,4].map(i=>document.getElementById('objMember'+i)?.value.trim()).filter(Boolean),rows,savedAt:Date.now()};
+  }
+  function validateObjective(o){const checks=[['Objetivo explicado',o.goal.length>=4],['Equipo e integrante',!!o.team&&o.members.length>0],['Tres activos diferentes',o.rows.length===3&&new Set(o.rows.map(r=>r.crypto)).size===3],['Montos y precios completos',o.rows.every(r=>r.amount>0&&r.price>0)],['Tres motivos explicados',o.rows.every(r=>r.reason.length>=4)],['Capital dentro del límite',o.rows.reduce((a,r)=>a+r.amount,0)<=CAPITAL],['Aprendizaje final',o.learning.length>=4]];return checks;}
+  function scheduleObjDraft(){clearTimeout(objDraftTimer);objDraftTimer=setTimeout(()=>{if(!objMission)return;const o=collectObjectiveFriendly();S.objectiveDrafts[objMission]=o;save();const d=document.getElementById('objectiveDraftStatus');if(d){d.textContent='✓ Borrador guardado';setTimeout(()=>{if(d)d.textContent='💾 Los cambios se guardan como borrador';},1500);}},450);}
+  function bindObjectiveInputs(){document.querySelectorAll('#objectiveBk input,#objectiveBk textarea,#objectiveBk select').forEach(e=>{e.addEventListener('input',()=>{objectiveRecalc();scheduleObjDraft();});e.addEventListener('change',()=>{objectiveRecalc();scheduleObjDraft();});});}
+  window.chooseObjStrategy=function(v,b){document.getElementById('objStrategy').value=v;document.querySelectorAll('.strategy-choice').forEach(x=>x.classList.toggle('sel',x===b));scheduleObjDraft();};
+  window.addReasonGuide=function(i,type){const card=document.querySelector(`.decision-card[data-row="${i}"]`),sym=card.querySelector('.or-coin').value,c=COINS.find(x=>x.sym===sym);const phrases={tamaño:`Elegimos ${sym} porque su capitalización de ${fmtCap(c.cap)} le da un peso relevante dentro del mercado.`,tendencia:`Elegimos ${sym} porque su variación de ${c.c7>=0?'+':''}${c.c7.toFixed(1)}% en 7 días muestra una tendencia que debemos considerar.`,riesgo:`Elegimos ${sym} porque su riesgo ${normRisk(c.vol<=1?'Bajo':c.vol===2?'Medio':'Alto').toLowerCase()} es coherente con la estrategia del equipo.`,función:`Elegimos ${sym} porque cumple una función distinta dentro del portafolio y mejora la diversificación.`};const ta=card.querySelector('.or-reason');ta.value=(ta.value.trim()?ta.value.trim()+' ':'')+phrases[type];ta.dispatchEvent(new Event('input',{bubbles:true}));};
+  window.objectiveCoinChanged=function(i){const card=document.querySelector(`.decision-card[data-row="${i}"]`),sym=card.querySelector('.or-coin').value,c=COINS.find(x=>x.sym===sym);card.querySelector('.or-price').value=c.p.toFixed(c.p<1?6:2);card.querySelector('.or-trend').value=c.c7>1?'Sube':c.c7<-1?'Baja':'Estable';card.querySelector('.or-risk').value=c.vol<=1?'Bajo':c.vol===2?'Medio':'Alto';objectiveRecalc();scheduleObjDraft();};
+  window.objectiveRecalc=function(){
+    const cards=[...document.querySelectorAll('.decision-card')];let total=0;const seg=[];cards.forEach((card,i)=>{const price=+card.querySelector('.or-price').value||0,amount=+card.querySelector('.or-amount').value||0,pct=amount/CAPITAL*100,sym=card.querySelector('.or-coin').value;total+=amount;card.querySelector('.or-qty').textContent=price?fmt(amount/price,6):'0';card.querySelector('.or-pct').textContent=pct.toFixed(1)+'%';card.classList.toggle('good',amount>0&&card.querySelector('.or-reason').value.trim().length>=4);seg.push({sym,pct,col:FCOLORS[i]});});
+    const pct=total/CAPITAL*100,res=Math.max(0,100-pct);const totalEl=document.getElementById('objTotalAmount');if(totalEl)totalEl.textContent=fmtUsd(total);const pctEl=document.getElementById('objTotalPct');if(pctEl)pctEl.textContent=pct.toFixed(1)+'%';const resEl=document.getElementById('objReserve');if(resEl)resEl.textContent=res.toFixed(1)+'%';const targetEl=document.getElementById('objTargetSummary');if(targetEl)targetEl.textContent=(+document.getElementById('objTarget')?.value||0).toFixed(1)+'%';
+    const stops=[];let acc=0;seg.forEach(x=>{if(x.pct>0){stops.push(`${x.col} ${acc}% ${Math.min(100,acc+x.pct)}%`);acc+=x.pct;}});if(res>0)stops.push(`#34415c ${Math.min(acc,100)}% 100%`);const donut=document.getElementById('objDonut');if(donut)donut.style.background=`conic-gradient(${stops.join(',')||'#34415c 0 100%'})`;const legend=document.getElementById('allocationLegend');if(legend)legend.innerHTML=seg.map(x=>`<span style="color:${x.col}">● ${x.sym} ${x.pct.toFixed(1)}%</span>`).join('')+`<span>● Reserva ${res.toFixed(1)}%</span>`;
+    const sum=document.getElementById('objectiveSummaryRows');if(sum)sum.innerHTML=cards.map((card,i)=>{const sym=card.querySelector('.or-coin').value,reason=card.querySelector('.or-reason').value.trim(),amount=+card.querySelector('.or-amount').value||0;return `<div class="summary-row"><span class="sym">${sym}</span><p>${fesc(reason||'Todavía falta explicar el motivo.')}</p><b>${fmtUsd(amount)}</b></div>`;}).join('');
+    const o=collectObjectiveFriendly(),checks=validateObjective(o),ok=checks.every(x=>x[1]);const status=document.getElementById('objStatus');if(status){status.textContent=ok?'Lista':'En construcción';status.style.color=ok?'var(--friendly)':'var(--gold)';}const list=document.getElementById('objectiveChecklist');if(list)list.innerHTML=checks.map(x=>`<div class="check-item ${x[1]?'ok':'todo'}" ${x[1]?'':`onclick="jumpToObjectiveField('${x[0]}')" role="button" tabindex="0"`}><i>${x[1]?'✓':'!'}</i>${x[0]}${x[1]?'':'<span class="ci-go">Completar →</span>'}</div>`).join('');const foot=document.getElementById('objectiveFooterStatus');if(foot){const missing=checks.filter(x=>!x[1]).length;foot.innerHTML=missing?`Te faltan <b>${missing}</b> detalle${missing===1?'':'s'} para guardar. <button type="button" class="objf-jump" onclick="jumpToObjectiveField('${checks.find(x=>!x[1])?.[0]||''}')">Ir ahora →</button>`:'<b>Ficha lista.</b> Ya pueden guardarla.';}const saveBtn=document.getElementById('objSave');if(saveBtn)saveBtn.disabled=!ok;
+  };
+  window.jumpToObjectiveField=function(label){
+    const cards=[...document.querySelectorAll('.decision-card')];
+    let panel=3, el=null;
+    if(label==='Objetivo explicado'){panel=1;el=document.getElementById('objGoal');}
+    else if(label==='Equipo e integrante'){panel=1;const teamEl=document.getElementById('objTeam');el=(teamEl&&teamEl.value.trim())?document.getElementById('objMember1'):teamEl;}
+    else if(label==='Tres activos diferentes'){panel=2;const syms=cards.map(c=>c.querySelector('.or-coin').value);const dupIdx=syms.findIndex((s,i)=>syms.indexOf(s)!==i);el=(cards[dupIdx>-1?dupIdx:0]||cards[0])?.querySelector('.or-coin');}
+    else if(label==='Montos y precios completos'){panel=2;const bad=cards.find(c=>!(+c.querySelector('.or-amount').value>0&&+c.querySelector('.or-price').value>0));el=(bad||cards[0])?.querySelector('.or-amount');}
+    else if(label==='Tres motivos explicados'){panel=2;const bad=cards.find(c=>c.querySelector('.or-reason').value.trim().length<4);el=(bad||cards[0])?.querySelector('.or-reason');}
+    else if(label==='Capital dentro del límite'){panel=2;el=cards[0]?.querySelector('.or-amount');}
+    else if(label==='Aprendizaje final'){panel=3;el=document.getElementById('objLearning');}
+    objectiveStep(panel);
+    setTimeout(()=>{
+      if(!el) return;
+      el.scrollIntoView({behavior:'smooth',block:'center'});
+      el.focus({preventScroll:true});
+      el.classList.add('field-flash');
+      setTimeout(()=>el.classList.remove('field-flash'),1600);
+    },140);
+  };
+  function renderObjectiveAll(o){renderPurpose(o);renderDecisions(o.rows);renderReview(o);bindObjectiveInputs();objectiveRecalc();}
+  window.showObjectiveSheet=function(m){ensureFriendlyState();objMission=m;objStep=1;objectiveShell();const o=objectiveDefault(m);document.getElementById('objectiveStamp').textContent=`MISIÓN ${m}`;renderObjectiveAll(o);document.getElementById('objectiveBk').classList.add('on');objectiveStep(1);};
+  window.objectiveStep=function(n){objStep=Math.max(1,Math.min(3,n));document.querySelectorAll('.wizard-panel').forEach(p=>p.classList.toggle('on',+p.dataset.panel===objStep));document.querySelectorAll('.wizard-step').forEach(b=>{const k=+b.dataset.step;b.classList.toggle('active',k===objStep);b.classList.toggle('done',k<objStep);});document.getElementById('objBack').style.visibility=objStep===1?'hidden':'visible';document.getElementById('objNext').style.display=objStep===3?'none':'inline-flex';document.getElementById('objSave').style.display=objStep===3?'inline-flex':'none';if(objStep===3)objectiveRecalc();document.querySelector('.objective-scroll')?.scrollTo({top:0,behavior:'smooth'});};
+  window.objectiveNext=function(){objectiveStep(objStep+1);};window.objectivePrev=function(){objectiveStep(objStep-1);};
+  window.closeObjectiveSheet=function(){if(objMission){S.objectiveDrafts[objMission]=collectObjectiveFriendly();save();}document.getElementById('objectiveBk').classList.remove('on');toast('💾 Borrador guardado. Puedes volver cuando quieras.');};
+  function printFriendlyHtml(o){const rows=o.rows.map((r,i)=>`<tr><td>${i+1}</td><td>${fesc(r.name)} (${r.crypto})</td><td>${fmt(r.price,6)}</td><td>${fmtUsd(r.amount)}</td><td>${fmt(r.qty,6)}</td><td>${r.pct.toFixed(1)}%</td><td>${r.trend}</td><td>${r.risk}</td><td>+${r.tp}%</td><td>−${r.sl}%</td><td>${fesc(r.reason)}</td></tr>`).join('');return `<img src="${document.querySelector('.logoplate img').src}" style="height:48px;margin-bottom:8px"><h1>Ficha de Objetivo del Equipo · Misión ${o.mission}</h1><h2>Crypto Challenge FCEE · UNIFRANZ · Evidencia de aprendizaje</h2><p><b>Objetivo:</b> ${fesc(o.goal)}</p><p><b>Capital:</b> USD 100 000 · <b>Meta:</b> ${o.target}% · <b>Estrategia:</b> ${fesc(o.strategy)}</p><p><b>Equipo:</b> ${fesc(o.team)} · <b>Integrantes:</b> ${o.members.map(fesc).join(' · ')}</p><table><tr><th>N.º</th><th>Criptomoneda</th><th>Precio</th><th>Monto</th><th>Cantidad</th><th>%</th><th>Tendencia</th><th>Riesgo</th><th>TP</th><th>SL</th><th>Motivo</th></tr>${rows}</table><h3>Aprendizaje de la misión</h3><p>${fesc(o.learning)}</p>`;}
+  window.printObjectiveSheet=function(){const o=collectObjectiveFriendly();document.getElementById('report').innerHTML=printFriendlyHtml(o);window.print();};
+  window.saveObjectiveSheet=function(){const o=collectObjectiveFriendly(),checks=validateObjective(o),missing=checks.filter(x=>!x[1]);if(missing.length){objectiveStep(3);objectiveRecalc();toast('🧭 Revisa la lista: '+missing[0][0].toLowerCase());setTimeout(()=>jumpToObjectiveField(missing[0][0]),350);return;}S.objectives[objMission]=o;delete S.objectiveDrafts[objMission];S.teamName=o.team;S.name=o.team;S.members=[...o.members,'','','',''].slice(0,4);const wasDone=!!S.m[objMission-1];let xpGained=0;if(!wasDone){S.m[objMission-1]=true;const a=FAWARDS[objMission];addXp(a[0],a[1]);xpGained+=a[0];if(objMission===2&&S.reserve>=10&&S.reserve<=25){addXp(30,'Bonus: reserva saludable');xpGained+=30;}if(objMission===5&&(S.bonus||'').length>20){addXp(50,'Bonus: visión adicional');xpGained+=50;}}save();document.getElementById('objectiveBk').classList.remove('on');renderRail();if(!wasDone){celebrateMissionComplete(objMission,xpGained);}else{toast('✓ Ficha actualizada.');setTimeout(openMissionHub,400);}};
+
+  /* ---------- Interacción "misión superada" (tipo juego) ---------- */
+  function celebrateMissionComplete(m,xp){
+    const meta=FMETA[m]||{icon:'🏆',title:'Misión '+m};
+    const isLast=m===5;
+    const badge=document.getElementById('mwBadge'); if(badge) badge.textContent=isLast?'🏆':meta.icon;
+    const kicker=document.getElementById('mwKicker'); if(kicker) kicker.textContent=isLast?'RETO COMPLETADO':'MISIÓN SUPERADA';
+    const title=document.getElementById('mwTitle'); if(title) title.textContent=`Misión ${m} · ${meta.title}`;
+    const sub=document.getElementById('mwSub'); if(sub) sub.textContent=isLast?'¡Tu equipo completó las 5 misiones! Revisen el tablero final con todo lo logrado.':'Tu equipo dejó una evidencia clara. Ya puedes avanzar a la siguiente misión.';
+    const xpEl=document.getElementById('mwXp'); if(xpEl) xpEl.textContent=`+${xp} XP`;
+    const done=S.m.filter(Boolean).length;
+    const label=document.getElementById('mwProgressLabel'); if(label) label.textContent=`${done} / 5 misiones completadas`;
+    const fill=document.getElementById('mwProgressFill');
+    if(fill){ fill.style.width='0%'; requestAnimationFrame(()=>requestAnimationFrame(()=>{ fill.style.width=(done/5*100)+'%'; })); }
+    const btn=document.getElementById('mwContinueBtn');
+    if(btn){
+      btn.textContent = isLast?'🏆 Ver resultados finales →':'Continuar →';
+      btn.onclick = isLast ? function(){ closeMissionWin(); go(6); } : function(){ closeMissionWin(); openMissionHub(); };
+    }
+    const conf=document.getElementById('mwConfetti');
+    if(conf){
+      const colors=['#F2B441','#7C6CF0','#2BD98F','#FF5A6E','#2A5ADA'];
+      conf.innerHTML=Array.from({length:20}).map(()=>{
+        const l=(Math.random()*100).toFixed(1), d=(Math.random()*0.5).toFixed(2), col=colors[Math.floor(Math.random()*colors.length)];
+        return `<span style="left:${l}%;background:${col};animation-delay:${d}s"></span>`;
+      }).join('');
+    }
+    const bk=document.getElementById('missionWinBk'); if(bk) bk.classList.add('on');
+  }
+  window.closeMissionWin=function(){ const bk=document.getElementById('missionWinBk'); if(bk) bk.classList.remove('on'); };
+
+  /* ---------- Misión 5: escritura acompañada ---------- */
+  function improveMission5(){const s=document.getElementById('s5');if(!s||s.querySelector('.answer-builder'))return;const card=s.querySelector('.card');const h=card.querySelector('h3');h.insertAdjacentHTML('afterend','<div class="answer-builder"><button class="btn sm friendly-help-btn" onclick="buildAnswerDraft()">✨ Crear un borrador con mis datos</button></div><div class="friendly-word-goal">Para completar esta misión son esenciales las preguntas 1, 2, 4 y 5. Las preguntas 3 y 6 amplían la evidencia y pueden completarse cuando haya más tiempo.</div>');const labels=card.querySelectorAll('label.f');[2,5].forEach(i=>{if(labels[i])labels[i].insertAdjacentHTML('beforeend',' <span class="optional-tag">AMPLIACIÓN</span>');});const refl=s.querySelector('#reflex')?.closest('.card');if(refl){refl.querySelector('h3').innerHTML='✍️ Reflexión breve (mínimo 5 palabras)';refl.querySelector('.hint').innerHTML='Estructura sugerida: <b>①</b> qué decidiste → <b>②</b> qué observaste → <b>③</b> qué cambiarías → <b>④</b> qué habilidad desarrollaste.';document.getElementById('wc').textContent='0 palabras · mínimo 5';}}
+  window.buildAnswerDraft=function(){ensureStarter();const picks=S.picks.slice(0,3),reserve=+S.reserve||15,stop=+S.stopG||10;const alloc=picks.map(s=>`${+S.alloc?.[s]||0}% en ${s}`).join(', ');const c1=`Elegimos una estrategia ${String(S.risk||'moderada').toLowerCase()}, distribuyendo ${alloc} y manteniendo ${reserve}% de reserva. Buscamos equilibrar crecimiento y protección del capital.`;const c2=`Elegimos ${picks.join(', ')} porque cumplen funciones diferentes. ${picks.map(s=>S.just?.[s]||'').filter(Boolean).join(' ')}`;const c4=`El principal riesgo es la volatilidad y la concentración del capital. Por eso usamos una reserva de ${reserve}% y un límite de pérdida de ${stop}% para evitar que una caída afecte todo el portafolio.`;const c5=`Si el mercado cae 10%, revisaríamos primero las órdenes y evitaríamos decidir por pánico. El stop-loss de ${stop}% limita pérdidas y la reserva de ${reserve}% permite esperar o aprovechar una oportunidad de manera controlada.`;[['c1',c1],['c2',c2],['c4',c4],['c5',c5]].forEach(([id,v])=>{const e=document.getElementById(id);if(e&&!e.value.trim())e.value=v;});toast('✨ Borrador creado. Revísalo y cámbialo con palabras del equipo.');};
+  const legacyCountWords=countWords;window.countWords=function(){const n=legacyCountWords();const e=document.getElementById('wc');const ok=n>=5;if(e){e.innerHTML=`${n} palabras · mínimo 5 ${ok?'✓':''}`;e.className='wordcount '+(ok?'ok':'bad');}return n;};
+  window.completeM5=function(){const required=['c1','c2','c4','c5'];for(const id of required){const e=document.getElementById(id);if(!e||e.value.trim().length<4){toast('🧭 Completa las preguntas esenciales 1, 2, 4 y 5');e?.focus();return;}S.answers[id]=e.value.trim();}['c3','c6'].forEach(id=>{const e=document.getElementById(id);if(e?.value.trim())S.answers[id]=e.value.trim();});const w=countWords();if(w<5){toast(`🧭 Escribe al menos 5 palabras en la reflexión. Tienes ${w}.`);return;}S.reflex=document.getElementById('reflex').value.trim();S.bonus=document.getElementById('bonusTxt').value.trim();showObjectiveSheet(5);};
+
+  /* ---------- Init V3 ---------- */
+  ensureFriendlyState();addFriendlyHeader();addIntroSupport();addMissionCompasses();buildCoach();prepareHub();improveMission5();
+  // Update title and a few navigation labels without changing functionality.
+  document.title='Crypto Challenge FCEE · Simulador guiado para estudiantes';
+  document.querySelectorAll('.navbtns .btn.gold').forEach(b=>{if(b.textContent.includes('Diseñar estrategia'))b.textContent='Completar ficha de la Misión 1';if(b.textContent.includes('Ejecutar inversiones'))b.textContent='Completar ficha de la Misión 2';if(b.textContent.includes('Validación segura'))b.textContent='Completar ficha de la Misión 3';if(b.textContent.includes('Preparar la explicación')||b.textContent.includes('Convencer'))b.textContent='Completar ficha de la Misión 4';});
+})();
+</script>
+<script id="v4-task-fixes">
+(function(){
+  'use strict';
+
+  function safeKioskState(){
+    if(!Array.isArray(S.kiosk)) S.kiosk=[false,false,false];
+    S.kiosk=[Boolean(S.kiosk[0]),Boolean(S.kiosk[1]),Boolean(S.kiosk[2])];
+    S.kioskMode=S.kioskMode||'demo';
+    S.kioskAsset=S.kioskAsset||'BTC';
+    S.newsReason=S.newsReason||'';
+  }
+
+  function impactMeta(n){
+    if(n.t==='pos') return {label:'Impacto alcista', cls:'t-pos', decision:'Podría aumentar la demanda. El equipo debe decidir si entra de forma gradual y sin abandonar sus límites de riesgo.'};
+    if(n.t==='neg') return {label:'Impacto bajista', cls:'t-neg', decision:'Podría aumentar la incertidumbre. El equipo puede protegerse con reserva, menor exposición y stop-loss.'};
+    return {label:'Impacto mixto', cls:'t-neu', decision:'Su efecto depende del contexto. Conviene contrastar datos antes de modificar la distribución del capital.'};
+  }
+
+  function buildQ4Choices(){
+    const host=document.getElementById('q4NewsChoices');
+    if(!host) return;
+    host.innerHTML=NEWS.map((n,i)=>{
+      const tag=n.t==='pos'?'Alcista':n.t==='neg'?'Bajista':'Neutro';
+      return `<button type="button" class="q4-news-option" data-i="${i}" onclick="newsPick(${i},this)" aria-pressed="false"><span class="q4-tag t-${n.t}">${tag}</span><span class="q4-copy"><b>${n.h}</b><small>${n.s}</small></span></button>`;
+    }).join('');
+    const reason=document.getElementById('q4Reason');
+    if(reason){
+      reason.value=S.newsReason||'';
+      reason.addEventListener('input',()=>{S.newsReason=reason.value;save();});
+    }
+    syncQ4UI();
+  }
+
+  function syncQ4UI(){
+    document.querySelectorAll('.newsitem,.q4-news-option').forEach(el=>{
+      const selected=Number(el.dataset.i)===Number(S.newsSel);
+      el.classList.toggle('sel',selected);
+      if(el.matches('.q4-news-option')) el.setAttribute('aria-pressed',selected?'true':'false');
+    });
+    const panel=document.getElementById('q4SelectionPanel');
+    const hint=document.getElementById('q4hint');
+    if(!(Number.isInteger(S.newsSel)&&S.newsSel>=0&&S.newsSel<NEWS.length)){
+      if(panel) panel.hidden=true;
+      if(hint){hint.className='hint';hint.textContent='Selecciona una tarjeta. No necesitas desplazarte a otra sección para completar esta tarea.';}
+      if(document.getElementById('t4')) setTask('t4',false);
+      return;
+    }
+    const n=NEWS[S.newsSel], meta=impactMeta(n);
+    if(panel) panel.hidden=false;
+    const badge=document.getElementById('q4ImpactBadge');
+    if(badge){badge.textContent=meta.label;badge.className=meta.cls;}
+    const title=document.getElementById('q4SelectedTitle'); if(title) title.textContent=n.h;
+    const why=document.getElementById('q4SelectedWhy'); if(why) why.innerHTML=`${n.why}<br><b style="color:var(--txt)">Decisión posible:</b> ${meta.decision}`;
+    if(hint){hint.className='hint ok';hint.innerHTML='✓ <b>Tarea 4 completada.</b> La noticia quedó seleccionada también en el radar superior. Puedes cambiarla cuando quieras.';}
+    if(document.getElementById('t4')) setTask('t4',true);
+  }
+
+  window.newsPick=function(i){
+    i=Number(i);
+    if(!Number.isInteger(i)||i<0||i>=NEWS.length){toast('No pude identificar esa noticia. Prueba con otra tarjeta.');return;}
+    S.newsSel=i;
+    if(!S.newsReason){
+      const n=NEWS[i], m=impactMeta(n);
+      S.newsReason=`La noticia puede influir en nuestra estrategia porque ${m.decision.charAt(0).toLowerCase()+m.decision.slice(1)}`;
+      const reason=document.getElementById('q4Reason'); if(reason) reason.value=S.newsReason;
+    }
+    syncQ4UI();
+    save();
+    toast('📰 Noticia analizada. La Tarea 4 quedó completada.');
+  };
+
+  function modeLabel(v){return v==='simulada'?'orden simulada':v==='institucional'?'kiosco institucional':'demo guiada';}
+
+  function syncKioskUI(){
+    safeKioskState();
+    const mode=document.getElementById('kioskMode'), asset=document.getElementById('kioskAsset');
+    if(mode) mode.value=S.kioskMode;
+    if(asset) asset.value=S.kioskAsset;
+    for(let i=1;i<=3;i++){
+      const ok=S.kiosk[i-1], task=document.getElementById('k'+i), btn=task?.querySelector('.action-opt'), fb=document.getElementById('kioskFb'+i);
+      if(task) setTask('k'+i,ok);
+      if(btn){btn.classList.toggle('sel',ok);btn.textContent=ok?(i===1?'✓ Activo validado':i===2?'✓ Monto confirmado':'✓ Evidencia registrada'):(i===1?'Confirmar activo analizado':i===2?'Confirmar monto dentro del plan':'Confirmar registro y evidencia');}
+      if(fb){
+        fb.className='kiosk-feedback'+(ok?' ok':'');
+        if(ok) fb.textContent=i===1?`${S.kioskAsset} fue validado por ICO.`:i===2?`${S.kioskAmt||0} fue confirmado dentro del plan.`:`Registro guardado: ${S.kioskDoc||'evidencia demo'}`;
+      }
+    }
+    const n=S.kiosk.filter(Boolean).length;
+    const fill=document.getElementById('kioskProgressFill'); if(fill) fill.style.width=(n/3*100)+'%';
+    const text=document.getElementById('kioskProgressText'); if(text) text.textContent=`${n} de 3 sellos`;
+    const next=document.getElementById('kioskNextHint');
+    if(next) next.textContent=n===0?'Comienza validando el activo.':n===1?'Ahora confirma el monto.':n===2?'Falta documentar la evidencia.':'Protocolo completo. Ya puedes cerrar la misión.';
+    const done=document.getElementById('m4completeBtn');
+    if(done){done.classList.toggle('ready',n===3);done.textContent=n===3?'✓ Cerrar misión y completar ficha':'Revisar y cerrar Misión 4';}
+  }
+
+  function focusKioskStep(n,msg){
+    const task=document.getElementById('k'+n); if(!task)return;
+    task.classList.remove('kiosk-focus'); void task.offsetWidth; task.classList.add('kiosk-focus');
+    task.scrollIntoView({behavior:'smooth',block:'center'});
+    const fb=document.getElementById('kioskFb'+n); if(fb){fb.className='kiosk-feedback err';fb.textContent=msg;}
+  }
+
+  window.kioskCheck=function(n){
+    safeKioskState();
+    n=Number(n);
+    const amount=document.getElementById('kioskAmt')?.value.trim()||'';
+    const doc=document.getElementById('kioskDoc')?.value.trim()||'';
+    S.kioskMode=document.getElementById('kioskMode')?.value||'demo';
+    S.kioskAsset=document.getElementById('kioskAsset')?.value||'BTC';
+    if(n===1){
+      if(!S.kioskAsset){focusKioskStep(1,'Selecciona el activo que será documentado.');return;}
+    }
+    if(n===2){
+      if(!(Number(amount)>0)){focusKioskStep(2,'Escribe un monto virtual mayor que cero. Ejemplo: 20.');toast('✋ Falta registrar el monto virtual');return;}
+      S.kioskAmt=amount;
+    }
+    if(n===3){
+      if(doc.length<4){focusKioskStep(3,'Escribe al menos una referencia breve: modalidad, activo y hora o número demo.');toast('✋ La evidencia necesita una referencia un poco más completa');return;}
+      S.kioskDoc=doc;
+    }
+    S.kiosk[n-1]=true;
+    syncKioskUI();save();
+    const count=S.kiosk.filter(Boolean).length;
+    toast(count===3?'🤝 Protocolo completo: los tres sellos están activos.':`✓ Sello ${n} guardado. Continúa con el siguiente paso.`);
+  };
+
+  window.fillDemoOperation=function(){
+    safeKioskState();
+    const mode=document.getElementById('kioskMode'),asset=document.getElementById('kioskAsset'),amount=document.getElementById('kioskAmt'),doc=document.getElementById('kioskDoc');
+    if(mode) mode.value='demo'; if(asset) asset.value='BTC'; if(amount) amount.value='20';
+    const stamp=new Date().toLocaleTimeString('es-BO',{hour:'2-digit',minute:'2-digit'});
+    if(doc) doc.value=`DEMO-BTC-${Date.now().toString().slice(-5)} · ${stamp} · orden educativa sin dinero real`;
+    S.kioskMode='demo';S.kioskAsset='BTC';S.kioskAmt='20';S.kioskDoc=doc?.value||'';S.kiosk=[false,false,false];
+    syncKioskUI();save();toast('✨ Ejemplo cargado. Ahora activa los tres sellos para comprender el control cruzado.');
+  };
+
+  window.resetKioskTask=function(){
+    safeKioskState();S.kiosk=[false,false,false];S.kioskAmt='';S.kioskDoc='';S.kioskMode='demo';S.kioskAsset='BTC';
+    const amount=document.getElementById('kioskAmt'),doc=document.getElementById('kioskDoc');if(amount)amount.value='';if(doc)doc.value='';
+    syncKioskUI();save();toast('↻ Misión 4 reiniciada. Puedes comenzar nuevamente.');
+  };
+
+  window.completeM4=function(){
+    safeKioskState();
+    const first=S.kiosk.findIndex(v=>!v);
+    if(first!==-1){
+      const messages=['Primero confirma que el activo fue analizado.','Registra y confirma el monto virtual.','Documenta la operación demo con una referencia breve.'];
+      focusKioskStep(first+1,messages[first]);toast(`✋ Falta el sello ${first+1} de 3`);return;
+    }
+    S.kioskMode=document.getElementById('kioskMode')?.value||S.kioskMode;
+    S.kioskAsset=document.getElementById('kioskAsset')?.value||S.kioskAsset;
+    S.kioskAmt=document.getElementById('kioskAmt')?.value||S.kioskAmt;
+    S.kioskDoc=document.getElementById('kioskDoc')?.value||S.kioskDoc;
+    save();showObjectiveSheet(4);
+  };
+
+  function bindKioskInputs(){
+    safeKioskState();
+    const mode=document.getElementById('kioskMode'),asset=document.getElementById('kioskAsset'),amount=document.getElementById('kioskAmt'),doc=document.getElementById('kioskDoc');
+    if(mode){mode.value=S.kioskMode;mode.addEventListener('change',()=>{S.kioskMode=mode.value;save();});}
+    if(asset){asset.value=S.kioskAsset;asset.addEventListener('change',()=>{S.kioskAsset=asset.value;S.kiosk[0]=false;syncKioskUI();save();});}
+    if(amount){amount.value=S.kioskAmt||amount.value;amount.addEventListener('input',()=>{S.kioskAmt=amount.value;S.kiosk[1]=false;syncKioskUI();save();});}
+    if(doc){doc.value=S.kioskDoc||doc.value;doc.addEventListener('input',()=>{S.kioskDoc=doc.value;S.kiosk[2]=false;syncKioskUI();save();});}
+    syncKioskUI();
+  }
+
+  function injectPrintStyle(){
+    if(document.getElementById('v4-print-style')) return;
+    const st=document.createElement('style');
+    st.id='v4-print-style';
+    st.textContent=`
+      @media print{
+        @page{ margin:14mm; }
+        #report{ width:100%; max-width:100%; }
+        #report table{ width:100% !important; max-width:100% !important; table-layout:fixed !important; border-collapse:collapse; }
+        #report th, #report td{
+          word-wrap:break-word; overflow-wrap:break-word; white-space:normal;
+          font-size:10px; line-height:1.3; padding:4px 5px; border:1px solid #999;
+        }
+        #report th:last-child, #report td:last-child{ width:18%; }
+        #report img{ max-width:160px; height:auto; }
+        #report h1{ font-size:16px; }
+        #report h2{ font-size:12px; }
+        #report p{ font-size:11px; }
+      }
+    `;
+    document.head.appendChild(st);
+  }
+
+  function injectTickerStyle(){
+    if(document.getElementById('v4-ticker-style')) return;
+    const st=document.createElement('style');
+    st.id='v4-ticker-style';
+    st.textContent=`
+      #ticker .tk-item{ display:inline-flex; align-items:center; gap:7px; margin:0 16px; }
+      #ticker .tk-sym{ font-weight:800; font-size:11px; padding:2px 9px; border-radius:999px; letter-spacing:.3px; }
+      #ticker .tk-price{ font-variant-numeric:tabular-nums; opacity:.92; }
+      #ticker .tk-badge{ font-weight:700; font-size:11px; padding:2px 9px; border-radius:999px; }
+      #ticker .tk-badge-up{ background:rgba(43,217,143,.18); color:var(--up,#2BD98F); }
+      #ticker .tk-badge-down{ background:rgba(255,90,110,.18); color:var(--down,#FF5A6E); }
+      #ticker .tk-brand{ font-weight:700; letter-spacing:.4px; }
+      .ticker-wrap{ position:relative; }
+      .ticker-wrap::before, .ticker-wrap::after{ content:''; position:absolute; top:0; bottom:0; width:44px; z-index:2; pointer-events:none; }
+      .ticker-wrap::before{ left:0; background:linear-gradient(90deg, #05080F 15%, transparent); }
+      .ticker-wrap::after{ right:0; background:linear-gradient(270deg, #05080F 15%, transparent); }
+    `;
+    document.head.appendChild(st);
+  }
+
+  function injectFieldOkStyle(){
+    if(document.getElementById('v4-field-ok-style')) return;
+    const st=document.createElement('style');
+    st.id='v4-field-ok-style';
+    st.textContent='.f4-field-ok{border:2px solid var(--up,#2BD98F) !important;background:rgba(43,217,143,.08) !important;transition:border-color .2s,background .2s}';
+    document.head.appendChild(st);
+  }
+
+  function bindLiveFieldFeedback(){
+    injectFieldOkStyle();
+    const ids=['trustWhy','c1','c2','c3','c4','c5','c6'];
+    const nameIds=['inpName','member1','member2','member3','member4'];
+    setInterval(()=>{
+      ids.forEach(id=>{
+        const el=document.getElementById(id);
+        if(el) el.classList.toggle('f4-field-ok', el.value.trim().length>=4);
+      });
+      nameIds.forEach(id=>{
+        const el=document.getElementById(id);
+        if(el) el.classList.toggle('f4-field-ok', el.value.trim().length>=1);
+      });
+      document.querySelectorAll('#q5just textarea[data-s]').forEach(el=>{
+        el.classList.toggle('f4-field-ok', el.value.trim().length>=4);
+      });
+      const reflexEl=document.getElementById('reflex');
+      if(reflexEl) reflexEl.classList.toggle('f4-field-ok', countWords()>=5);
+      const bonusEl=document.getElementById('bonusTxt');
+      if(bonusEl) bonusEl.classList.toggle('f4-field-ok', bonusEl.value.trim().length>=4);
+    }, 400);
+  }
+
+  const START_META={
+    1:{icon:'🔎',title:'Explora el mercado',sub:'Compararás datos de mercado y elegirás tres criptoactivos con evidencia.'},
+    2:{icon:'🧩',title:'Diseña la estrategia',sub:'Repartirás el capital y fijarás tus límites de riesgo.'},
+    3:{icon:'⚡',title:'Prueba tus decisiones',sub:'Ejecutarás compras virtuales y avanzarás siete jornadas.'},
+    4:{icon:'🛡️',title:'Valida la operación',sub:'Aplicarás tres controles de equipo y dejarás evidencia.'},
+    5:{icon:'🎙️',title:'Explica tu decisión',sub:'Construirás argumentos con datos y una reflexión final.'}
+  };
+
+  function celebrateMissionStart(m){
+    const meta=START_META[m]; if(!meta) return;
+    const badge=document.getElementById('msBadge'); if(badge) badge.textContent=meta.icon;
+    const title=document.getElementById('msTitle'); if(title) title.textContent=`Misión ${m} · ${meta.title}`;
+    const sub=document.getElementById('msSub'); if(sub) sub.textContent=meta.sub;
+    const bk=document.getElementById('missionStartBk'); if(bk) bk.classList.add('on');
+  }
+  window.closeMissionStart=function(){ const bk=document.getElementById('missionStartBk'); if(bk) bk.classList.remove('on'); };
+
+  function bindMissionStartPopup(){
+    const btn=document.getElementById('msStartBtn');
+    if(btn) btn.onclick=closeMissionStart;
+    const legacyOpenMission=window.openMission;
+    if(typeof legacyOpenMission==='function'){
+      window.openMission=function(i){
+        legacyOpenMission(i);
+        celebrateMissionStart(i);
+      };
+    }
+  }
+
+  safeKioskState();
+  buildQ4Choices();
+  bindKioskInputs();
+  bindLiveFieldFeedback();
+  injectPrintStyle();
+  injectTickerStyle();
+  bindMissionStartPopup();
+  if(typeof renderTicker==='function') renderTicker();
+})();
+</script>
 
 </body>
 </html>
